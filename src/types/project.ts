@@ -18,7 +18,7 @@ export interface Epic {
   projectId: string;
   name: string;
   description: string;
-  stories: Story[];
+  stories: string[];
 }
 
 export interface Story {
@@ -26,7 +26,7 @@ export interface Story {
   epicId: string;
   name: string;
   description: string;
-  tasks: Task[];
+  tasks: string[];
 }
 
 export interface Task {
@@ -34,7 +34,18 @@ export interface Task {
   storyId?: string;
   name: string;
   description: string;
-  subTasks: SubTask[];
+  type: 'epic' | 'story' | 'task' | 'sub-task';
+  status: 'todo' | 'in-progress' | 'review' | 'done';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  storyPoints: number;
+  assigneeId: string;
+  reporterId: string;
+  likes: number;
+  comments: number;
+  createdAt: string;
+  labels: string[];
+  attachments: string[];
+  subTasks: string[];
 }
 
 export interface SubTask {

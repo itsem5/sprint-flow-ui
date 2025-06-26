@@ -8,15 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Heart, MessageCircle, Clock, User, Calendar, Tag } from "lucide-react";
-import { Task } from "./TaskCard";
+import { MessageCircle, Clock, User, Calendar, Tag, Paperclip, Upload, X } from "lucide-react";
+import { TaskWithDetails, User as UserType, Attachment } from "@/hooks/useStaticData";
 import { cn } from "@/lib/utils";
+import { useStaticData } from "@/hooks/useStaticData";
 
 interface TaskModalProps {
-  task: Task | null;
+  task: TaskWithDetails | null;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (task: Task) => void;
+  onUpdate: (task: TaskWithDetails) => void;
 }
 
 interface Comment {
@@ -42,13 +43,6 @@ const mockComments: Comment[] = [
   },
 ];
 
-const developers = [
-  { name: 'John Doe', initials: 'JD', email: 'john@example.com' },
-  { name: 'Jane Smith', initials: 'JS', email: 'jane@example.com' },
-  { name: 'Bob Wilson', initials: 'BW', email: 'bob@example.com' },
-  { name: 'Alice Brown', initials: 'AB', email: 'alice@example.com' },
-];
-
 const typeColors = {
   epic: 'bg-purple-100 text-purple-800 border-purple-200',
   story: 'bg-green-100 text-green-800 border-green-200',
@@ -66,8 +60,9 @@ const priorityColors = {
 export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
   const [comments, setComments] = useState<Comment[]>(mockComments);
   const [newComment, setNewComment] = useState('');
-  const [isLiked, setIsLiked] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<TaskWithDetails | null>(null);
+  const [attachments, setAttachments] = useState<Attachment[]>(task?.attachments || []);
+  const data = useStaticData();
 
   if (!task) return null;
 
@@ -75,35 +70,38 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
 
   const handleSave = () => {
     if (editingTask) {
-      onUpdate(editingTask);
+      onUpdate({ ...editingTask, attachments });
       setEditingTask(null);
     }
   };
 
   const handleCancel = () => {
     setEditingTask(null);
+    setAttachments(task.attachments);
   };
 
   const handleEdit = () => {
     setEditingTask({ ...task });
+    setAttachments(task.attachments);
   };
 
-  const handleFieldChange = (field: keyof Task, value: any) => {
+  const handleFieldChange = (field: keyof TaskWithDetails, value: any) => {
     if (editingTask) {
       setEditingTask({ ...editingTask, [field]: value });
     }
   };
 
-  const handleAssigneeChange = (newAssignee: string) => {
-    const developer = developers.find(dev => dev.name === newAssignee);
-    if (developer && editingTask) {
-      setEditingTask({
-        ...editingTask,
-        assignee: {
-          name: developer.name,
-          initials: developer.initials,
-        }
-      });
+  const handleAssigneeChange = (newAssigneeId: string) => {
+    const assignee = data?.users.find(user => user.id === newAssigneeId);
+    if (assignee && editingTask) {
+      setEditingTask({ ...editingTask, assignee });
+    }
+  };
+
+  const handleReporterChange = (newReporterId: string) => {
+    const reporter = data?.users.find(user => user.id === newReporterId);
+    if (reporter && editingTask) {
+      setEditingTask({ ...editingTask, reporter });
     }
   };
 
@@ -120,10 +118,33 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
     }
   };
 
-  const toggleLike = () => {
-    setIsLiked(!isLiked);
-    const updatedTask = { ...currentTask, likes: isLiked ? currentTask.likes - 1 : currentTask.likes + 1 };
-    onUpdate(updatedTask);
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      Array.from(files).forEach(file => {
+        const newAttachment: Attachment = {
+          id: `attachment-${Date.now()}-${Math.random()}`,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: 'current-user'
+        };
+        setAttachments(prev => [...prev, newAttachment]);
+      });
+    }
+  };
+
+  const removeAttachment = (attachmentId: string) => {
+    setAttachments(prev => prev.filter(a => a.id !== attachmentId));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   return (
@@ -151,12 +172,12 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
             <div className="space-y-4">
               {editingTask ? (
                 <Input
-                  value={editingTask.title}
-                  onChange={(e) => handleFieldChange('title', e.target.value)}
+                  value={editingTask.name}
+                  onChange={(e) => handleFieldChange('name', e.target.value)}
                   className="text-xl font-semibold"
                 />
               ) : (
-                <h2 className="text-xl font-semibold">{currentTask.title}</h2>
+                <h2 className="text-xl font-semibold">{currentTask.name}</h2>
               )}
 
               {editingTask ? (
@@ -168,6 +189,80 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
               ) : (
                 <p className="text-muted-foreground">{currentTask.description}</p>
               )}
+            </div>
+
+            <Separator />
+
+            {/* Attachments Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Paperclip className="w-5 h-5" />
+                <h3 className="text-lg font-semibold">Attachments ({attachments.length})</h3>
+                {editingTask && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload
+                  </Button>
+                )}
+              </div>
+
+              <input
+                id="file-upload"
+                type="file"
+                multiple
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+
+              <div className="space-y-2">
+                {attachments.map((attachment) => (
+                  <div key={attachment.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <Paperclip className="w-4 h-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">{attachment.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatFileSize(attachment.size)} • {new Date(attachment.uploadedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    {editingTask && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeAttachment(attachment.id)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Sub-tasks Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Tag className="w-5 h-5" />
+                <h3 className="text-lg font-semibold">Sub-tasks ({currentTask.subTasks.length})</h3>
+              </div>
+
+              <div className="space-y-2">
+                {currentTask.subTasks.map((subTask) => (
+                  <div key={subTask.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{subTask.name}</p>
+                      <p className="text-xs text-muted-foreground">{subTask.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <Separator />
@@ -266,15 +361,15 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
               </div>
               {editingTask ? (
                 <Select
-                  value={editingTask.assignee.name}
+                  value={editingTask.assignee.id}
                   onValueChange={handleAssigneeChange}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {developers.map(dev => (
-                      <SelectItem key={dev.name} value={dev.name}>{dev.name}</SelectItem>
+                    {data?.users.map(user => (
+                      <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -297,38 +392,29 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
                 <User className="w-4 h-4" />
                 <span className="font-medium">Reporter</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={currentTask.reporter.avatar} />
-                  <AvatarFallback>{currentTask.reporter.initials}</AvatarFallback>
-                </Avatar>
-                <span>{currentTask.reporter.name}</span>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Engagement */}
-            <div className="space-y-2">
-              <span className="font-medium">Engagement</span>
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleLike}
-                  className={cn(
-                    "flex items-center gap-1",
-                    isLiked && "text-red-500"
-                  )}
+              {editingTask ? (
+                <Select
+                  value={editingTask.reporter.id}
+                  onValueChange={handleReporterChange}
                 >
-                  <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
-                  {currentTask.likes}
-                </Button>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <MessageCircle className="w-4 h-4" />
-                  {comments.length}
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {data?.users.map(user => (
+                      <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={currentTask.reporter.avatar} />
+                    <AvatarFallback>{currentTask.reporter.initials}</AvatarFallback>
+                  </Avatar>
+                  <span>{currentTask.reporter.name}</span>
                 </div>
-              </div>
+              )}
             </div>
 
             <Separator />
@@ -339,7 +425,9 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
                 <Calendar className="w-4 h-4" />
                 <span className="font-medium">Created</span>
               </div>
-              <span className="text-sm text-muted-foreground">{currentTask.createdAt}</span>
+              <span className="text-sm text-muted-foreground">
+                {new Date(currentTask.createdAt).toLocaleDateString()}
+              </span>
             </div>
           </div>
         </div>

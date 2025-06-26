@@ -1,96 +1,21 @@
+
 import { useState, useEffect, useRef } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TaskCard, Task } from "@/components/TaskCard";
+import { TaskCard } from "@/components/TaskCard";
 import { TaskModal } from "@/components/TaskModal";
-import { AddTaskModal } from "@/components/AddTaskModal";
+import { CreateStoryModal } from "@/components/CreateStoryModal";
+import { CreateTaskModal } from "@/components/CreateTaskModal";
+import { CreateSubTaskModal } from "@/components/CreateSubTaskModal";
 import { ColumnCustomizer } from "@/components/ColumnCustomizer";
 import { TaskBreadcrumb, BreadcrumbItem } from "@/components/Breadcrumb";
 import { Plus, Filter, Search, Settings, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { KanbanColumn } from "@/types/project";
-
-// Mock data
-const mockTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Implement user authentication',
-    description: 'Add login and registration functionality with JWT tokens',
-    type: 'story',
-    status: 'todo',
-    priority: 'high',
-    storyPoints: 8,
-    assignee: { name: 'John Doe', initials: 'JD' },
-    reporter: { name: 'Jane Smith', initials: 'JS' },
-    likes: 3,
-    comments: 5,
-    createdAt: '2024-01-15',
-    labels: ['backend', 'security']
-  },
-  {
-    id: '2',
-    title: 'Design landing page',
-    description: 'Create wireframes and mockups for the main landing page',
-    type: 'task',
-    status: 'in-progress',
-    priority: 'medium',
-    storyPoints: 5,
-    assignee: { name: 'Alice Brown', initials: 'AB' },
-    reporter: { name: 'Bob Wilson', initials: 'BW' },
-    likes: 7,
-    comments: 3,
-    createdAt: '2024-01-14',
-    labels: ['design', 'ui']
-  },
-  {
-    id: '3',
-    title: 'Set up CI/CD pipeline',
-    description: 'Configure automated testing and deployment',
-    type: 'task',
-    status: 'review',
-    priority: 'urgent',
-    storyPoints: 13,
-    assignee: { name: 'Bob Wilson', initials: 'BW' },
-    reporter: { name: 'John Doe', initials: 'JD' },
-    likes: 2,
-    comments: 8,
-    createdAt: '2024-01-13',
-    labels: ['devops', 'automation']
-  },
-  {
-    id: '4',
-    title: 'User profile page',
-    description: 'Create user profile editing functionality',
-    type: 'story',
-    status: 'done',
-    priority: 'low',
-    storyPoints: 3,
-    assignee: { name: 'Jane Smith', initials: 'JS' },
-    reporter: { name: 'Alice Brown', initials: 'AB' },
-    likes: 12,
-    comments: 2,
-    createdAt: '2024-01-12',
-    labels: ['frontend', 'user']
-  },
-  {
-    id: '5',
-    title: 'Database optimization',
-    description: 'Optimize database queries for better performance',
-    type: 'task',
-    status: 'todo',
-    priority: 'medium',
-    storyPoints: 5,
-    assignee: { name: 'John Doe', initials: 'JD' },
-    reporter: { name: 'Bob Wilson', initials: 'BW' },
-    likes: 1,
-    comments: 1,
-    createdAt: '2024-01-16',
-    labels: ['database', 'performance']
-  }
-];
+import { useStaticData, TaskWithDetails } from "@/hooks/useStaticData";
 
 const defaultColumns: KanbanColumn[] = [
   { id: 'todo', title: 'To Do', color: 'bg-gray-100', order: 0 },
@@ -100,12 +25,13 @@ const defaultColumns: KanbanColumn[] = [
 ];
 
 const SprintBoard = () => {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [isCreateStoryModalOpen, setIsCreateStoryModalOpen] = useState(false);
+  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
+  const [isCreateSubTaskModalOpen, setIsCreateSubTaskModalOpen] = useState(false);
   const [isColumnCustomizerOpen, setIsColumnCustomizerOpen] = useState(false);
-  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [draggedTask, setDraggedTask] = useState<TaskWithDetails | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAssignee, setSelectedAssignee] = useState<string>('all');
@@ -113,7 +39,16 @@ const SprintBoard = () => {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [columns, setColumns] = useState<KanbanColumn[]>(defaultColumns);
   const [addTaskColumnId, setAddTaskColumnId] = useState<string>('');
+  const [tasks, setTasks] = useState<TaskWithDetails[]>([]);
   const dragCounter = useRef(0);
+  const data = useStaticData();
+
+  // Load tasks from static data
+  useEffect(() => {
+    if (data?.tasks) {
+      setTasks(data.tasks);
+    }
+  }, [data]);
 
   // Mock breadcrumb data - in real app this would come from route params/context
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -127,7 +62,7 @@ const SprintBoard = () => {
   const uniqueAssignees = Array.from(new Set(tasks.map(task => task.assignee.name)));
 
   const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = task.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.assignee.name.toLowerCase().includes(searchQuery.toLowerCase());
     
@@ -147,31 +82,37 @@ const SprintBoard = () => {
 
   const hasActiveFilters = searchQuery || selectedAssignee !== 'all' || selectedPriority !== 'all' || selectedType !== 'all';
 
-  const handleTaskClick = (task: Task) => {
+  const handleTaskClick = (task: TaskWithDetails) => {
     setSelectedTask(task);
     setIsModalOpen(true);
   };
 
-  const handleTaskUpdate = (updatedTask: Task) => {
+  const handleTaskUpdate = (updatedTask: TaskWithDetails) => {
     setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
     setSelectedTask(updatedTask);
   };
 
-  const handleAddTask = (newTaskData: Omit<Task, 'id'>) => {
-    const newTask: Task = {
-      ...newTaskData,
-      id: Date.now().toString(),
-      status: addTaskColumnId as Task['status'] || newTaskData.status
-    };
-    setTasks([...tasks, newTask]);
+  const handleCreateStory = (storyData: { name: string; description: string; epicId: string }) => {
+    console.log('Creating story:', storyData);
+    // In a real app, this would create a new story
   };
 
-  const openAddTaskModal = (columnId?: string) => {
+  const handleCreateTask = (taskData: any) => {
+    console.log('Creating task:', taskData);
+    // In a real app, this would create a new task
+  };
+
+  const handleCreateSubTask = (subTaskData: { name: string; description: string; taskId: string }) => {
+    console.log('Creating sub-task:', subTaskData);
+    // In a real app, this would create a new sub-task
+  };
+
+  const openCreateTaskModal = (columnId?: string) => {
     setAddTaskColumnId(columnId || 'todo');
-    setIsAddTaskModalOpen(true);
+    setIsCreateTaskModalOpen(true);
   };
 
-  const handleDragStart = (e: React.DragEvent, task: Task) => {
+  const handleDragStart = (e: React.DragEvent, task: TaskWithDetails) => {
     setDraggedTask(task);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', e.currentTarget.outerHTML);
@@ -204,7 +145,7 @@ const SprintBoard = () => {
     if (draggedTask && draggedTask.status !== columnId) {
       const updatedTasks = tasks.map(task =>
         task.id === draggedTask.id
-          ? { ...task, status: columnId as Task['status'] }
+          ? { ...task, status: columnId as TaskWithDetails['status'] }
           : task
       );
       setTasks(updatedTasks);
@@ -215,6 +156,31 @@ const SprintBoard = () => {
   const getTasksByColumn = (columnId: string) => {
     return filteredTasks.filter(task => task.status === columnId);
   };
+
+  // Convert TaskWithDetails to the format expected by TaskCard
+  const convertTaskForCard = (task: TaskWithDetails) => ({
+    id: task.id,
+    title: task.name,
+    description: task.description,
+    type: task.type,
+    status: task.status,
+    priority: task.priority,
+    storyPoints: task.storyPoints,
+    assignee: {
+      name: task.assignee.name,
+      initials: task.assignee.initials,
+      avatar: task.assignee.avatar
+    },
+    reporter: {
+      name: task.reporter.name,
+      initials: task.reporter.initials,
+      avatar: task.reporter.avatar
+    },
+    likes: task.likes,
+    comments: task.comments,
+    createdAt: new Date(task.createdAt).toLocaleDateString(),
+    labels: task.labels
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -289,9 +255,20 @@ const SprintBoard = () => {
               <Settings className="w-4 h-4 mr-2" />
               Customize
             </Button>
-            <Button size="sm" onClick={() => openAddTaskModal()}>
+            
+            <Button size="sm" onClick={() => setIsCreateStoryModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Task
+              Story
+            </Button>
+            
+            <Button size="sm" onClick={() => openCreateTaskModal()}>
+              <Plus className="w-4 h-4 mr-2" />
+              Task
+            </Button>
+            
+            <Button size="sm" onClick={() => setIsCreateSubTaskModalOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Sub-task
             </Button>
           </div>
         </div>
@@ -322,7 +299,7 @@ const SprintBoard = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => openAddTaskModal(column.id)}
+                        onClick={() => openCreateTaskModal(column.id)}
                         className="h-6 w-6 p-0"
                       >
                         <Plus className="w-4 h-4" />
@@ -339,7 +316,7 @@ const SprintBoard = () => {
                       className="transition-transform duration-200 hover:scale-105"
                     >
                       <TaskCard
-                        task={task}
+                        task={convertTaskForCard(task)}
                         onClick={() => handleTaskClick(task)}
                         isDragging={draggedTask?.id === task.id}
                       />
@@ -351,7 +328,7 @@ const SprintBoard = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => openAddTaskModal(column.id)}
+                        onClick={() => openCreateTaskModal(column.id)}
                         className="mt-2"
                       >
                         <Plus className="w-4 h-4 mr-2" />
@@ -373,11 +350,25 @@ const SprintBoard = () => {
         onUpdate={handleTaskUpdate}
       />
 
-      <AddTaskModal
-        isOpen={isAddTaskModalOpen}
-        onClose={() => setIsAddTaskModalOpen(false)}
-        onAddTask={handleAddTask}
-        defaultStatus={addTaskColumnId}
+      <CreateStoryModal
+        isOpen={isCreateStoryModalOpen}
+        onClose={() => setIsCreateStoryModalOpen(false)}
+        onCreateStory={handleCreateStory}
+        projectId="proj-1"
+      />
+
+      <CreateTaskModal
+        isOpen={isCreateTaskModalOpen}
+        onClose={() => setIsCreateTaskModalOpen(false)}
+        onCreateTask={handleCreateTask}
+        epicId="epic-1"
+      />
+
+      <CreateSubTaskModal
+        isOpen={isCreateSubTaskModalOpen}
+        onClose={() => setIsCreateSubTaskModalOpen(false)}
+        onCreateSubTask={handleCreateSubTask}
+        storyId="story-1"
       />
 
       <ColumnCustomizer
