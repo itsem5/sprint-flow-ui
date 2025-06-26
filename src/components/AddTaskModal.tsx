@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -24,54 +25,50 @@ const developers = [
 
 export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo' }: AddTaskModalProps) {
   const [formData, setFormData] = useState({
-    title: '',
+    name: '',
     description: '',
     type: 'task' as Task['type'],
     status: defaultStatus as Task['status'],
     priority: 'medium' as Task['priority'],
     storyPoints: 1,
-    assignee: developers[0].name,
+    assigneeId: 'user-1',
+    reporterId: 'current-user',
     labels: [] as string[],
     newLabel: ''
   });
 
   const handleSubmit = () => {
-    if (!formData.title.trim()) return;
-
-    const assignee = developers.find(dev => dev.name === formData.assignee) || developers[0];
+    if (!formData.name.trim()) return;
     
     const newTask: Omit<Task, 'id'> = {
-      title: formData.title,
+      name: formData.name,
       description: formData.description,
       type: formData.type,
       status: formData.status,
       priority: formData.priority,
       storyPoints: formData.storyPoints,
-      assignee: {
-        name: assignee.name,
-        initials: assignee.initials
-      },
-      reporter: {
-        name: 'Current User',
-        initials: 'CU'
-      },
+      assigneeId: formData.assigneeId,
+      reporterId: formData.reporterId,
       likes: 0,
       comments: 0,
       createdAt: new Date().toISOString().split('T')[0],
-      labels: formData.labels
+      labels: formData.labels,
+      attachments: [],
+      subTasks: []
     };
 
     onAddTask(newTask);
     
     // Reset form
     setFormData({
-      title: '',
+      name: '',
       description: '',
       type: 'task',
       status: defaultStatus as Task['status'],
       priority: 'medium',
       storyPoints: 1,
-      assignee: developers[0].name,
+      assigneeId: 'user-1',
+      reporterId: 'current-user',
       labels: [],
       newLabel: ''
     });
@@ -105,11 +102,11 @@ export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Title *</label>
+            <label className="block text-sm font-medium mb-2">Name *</label>
             <Input
-              value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
-              placeholder="Enter task title"
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              placeholder="Enter task name"
             />
           </div>
 
@@ -188,13 +185,13 @@ export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo
 
           <div>
             <label className="block text-sm font-medium mb-2">Assignee</label>
-            <Select value={formData.assignee} onValueChange={(value) => setFormData({...formData, assignee: value})}>
+            <Select value={formData.assigneeId} onValueChange={(value) => setFormData({...formData, assigneeId: value})}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {developers.map(dev => (
-                  <SelectItem key={dev.name} value={dev.name}>{dev.name}</SelectItem>
+                {developers.map((dev, index) => (
+                  <SelectItem key={`user-${index + 1}`} value={`user-${index + 1}`}>{dev.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -223,7 +220,7 @@ export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo
 
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={!formData.title.trim()}>
+            <Button onClick={handleSubmit} disabled={!formData.name.trim()}>
               Add Task
             </Button>
           </div>
