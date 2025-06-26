@@ -20,18 +20,18 @@ export interface Attachment {
   uploadedBy: string;
 }
 
-export interface TaskWithDetails extends Task {
+export interface TaskWithDetails extends Omit<Task, 'attachments' | 'subTasks'> {
   assignee: User;
   reporter: User;
   attachments: Attachment[];
   subTasks: SubTask[];
 }
 
-export interface StoryWithDetails extends Story {
+export interface StoryWithDetails extends Omit<Story, 'tasks'> {
   tasks: TaskWithDetails[];
 }
 
-export interface EpicWithDetails extends Epic {
+export interface EpicWithDetails extends Omit<Epic, 'stories'> {
   stories: StoryWithDetails[];
 }
 
