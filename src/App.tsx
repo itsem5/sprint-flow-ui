@@ -27,6 +27,11 @@ const App = () => (
             <main className="flex-1 overflow-auto">
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/project/:projectId" element={<Dashboard />} />
+                <Route path="/project/:projectId/sprint" element={<SprintBoard />} />
+                <Route path="/project/:projectId/backlog" element={<Backlog />} />
+                <Route path="/project/:projectId/roadmap" element={<Roadmap />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/sprint" element={<SprintBoard />} />
                 <Route path="/backlog" element={<Backlog />} />

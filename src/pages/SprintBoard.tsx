@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,8 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TaskCard, Task } from "@/components/TaskCard";
 import { TaskModal } from "@/components/TaskModal";
-import { Plus, Filter, Search } from "lucide-react";
+import { AddTaskModal } from "@/components/AddTaskModal";
+import { ColumnCustomizer } from "@/components/ColumnCustomizer";
+import { TaskBreadcrumb, BreadcrumbItem } from "@/components/Breadcrumb";
+import { Plus, Filter, Search, Settings, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { KanbanColumn } from "@/types/project";
 
 // Mock data
 const mockTasks: Task[] = [
@@ -88,27 +92,60 @@ const mockTasks: Task[] = [
   }
 ];
 
-const columns = [
-  { id: 'todo', title: 'To Do', color: 'bg-gray-100' },
-  { id: 'in-progress', title: 'In Progress', color: 'bg-blue-100' },
-  { id: 'review', title: 'Review', color: 'bg-yellow-100' },
-  { id: 'done', title: 'Done', color: 'bg-green-100' }
+const defaultColumns: KanbanColumn[] = [
+  { id: 'todo', title: 'To Do', color: 'bg-gray-100', order: 0 },
+  { id: 'in-progress', title: 'In Progress', color: 'bg-blue-100', order: 1 },
+  { id: 'review', title: 'Review', color: 'bg-yellow-100', order: 2 },
+  { id: 'done', title: 'Done', color: 'bg-green-100', order: 3 }
 ];
 
 const SprintBoard = () => {
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [isColumnCustomizerOpen, setIsColumnCustomizerOpen] = useState(false);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAssignee, setSelectedAssignee] = useState<string>('all');
+  const [selectedPriority, setSelectedPriority] = useState<string>('all');
+  const [selectedType, setSelectedType] = useState<string>('all');
+  const [columns, setColumns] = useState<KanbanColumn[]>(defaultColumns);
+  const [addTaskColumnId, setAddTaskColumnId] = useState<string>('');
   const dragCounter = useRef(0);
 
-  const filteredTasks = tasks.filter(task =>
-    task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    task.assignee.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Mock breadcrumb data - in real app this would come from route params/context
+  const breadcrumbItems: BreadcrumbItem[] = [
+    { title: 'E-commerce Platform', url: '/project/1' },
+    { title: 'User Management Epic', url: '/project/1/epic/1' },
+    { title: 'Authentication Story', url: '/project/1/story/1' },
+    { title: 'Sprint Board', isActive: true }
+  ];
+
+  // Get unique assignees for filter
+  const uniqueAssignees = Array.from(new Set(tasks.map(task => task.assignee.name)));
+
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.assignee.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesAssignee = selectedAssignee === 'all' || task.assignee.name === selectedAssignee;
+    const matchesPriority = selectedPriority === 'all' || task.priority === selectedPriority;
+    const matchesType = selectedType === 'all' || task.type === selectedType;
+
+    return matchesSearch && matchesAssignee && matchesPriority && matchesType;
+  });
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedAssignee('all');
+    setSelectedPriority('all');
+    setSelectedType('all');
+  };
+
+  const hasActiveFilters = searchQuery || selectedAssignee !== 'all' || selectedPriority !== 'all' || selectedType !== 'all';
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
@@ -118,6 +155,20 @@ const SprintBoard = () => {
   const handleTaskUpdate = (updatedTask: Task) => {
     setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
     setSelectedTask(updatedTask);
+  };
+
+  const handleAddTask = (newTaskData: Omit<Task, 'id'>) => {
+    const newTask: Task = {
+      ...newTaskData,
+      id: Date.now().toString(),
+      status: addTaskColumnId as Task['status'] || newTaskData.status
+    };
+    setTasks([...tasks, newTask]);
+  };
+
+  const openAddTaskModal = (columnId?: string) => {
+    setAddTaskColumnId(columnId || 'todo');
+    setIsAddTaskModalOpen(true);
   };
 
   const handleDragStart = (e: React.DragEvent, task: Task) => {
@@ -168,6 +219,8 @@ const SprintBoard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6">
+        <TaskBreadcrumb items={breadcrumbItems} />
+        
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
@@ -186,19 +239,65 @@ const SprintBoard = () => {
                 className="w-64"
               />
             </div>
-            <Button variant="outline" size="sm">
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
+            
+            <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Assignee" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Assignees</SelectItem>
+                {uniqueAssignees.map(assignee => (
+                  <SelectItem key={assignee} value={assignee}>{assignee}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Priority</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="epic">Epic</SelectItem>
+                <SelectItem value="story">Story</SelectItem>
+                <SelectItem value="task">Task</SelectItem>
+                <SelectItem value="sub-task">Sub-task</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {hasActiveFilters && (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                <X className="w-4 h-4 mr-2" />
+                Clear
+              </Button>
+            )}
+
+            <Button variant="outline" size="sm" onClick={() => setIsColumnCustomizerOpen(true)}>
+              <Settings className="w-4 h-4 mr-2" />
+              Customize
             </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={() => openAddTaskModal()}>
               <Plus className="w-4 h-4 mr-2" />
               Add Task
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {columns.map((column) => {
+        <div className={`grid gap-6`} style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}>
+          {columns.sort((a, b) => a.order - b.order).map((column) => {
             const columnTasks = getTasksByColumn(column.id);
             const isDragOver = dragOverColumn === column.id;
 
@@ -216,9 +315,19 @@ const SprintBoard = () => {
                 <CardHeader className={`pb-3 ${column.color} rounded-t-lg`}>
                   <CardTitle className="flex items-center justify-between">
                     <span className="text-sm font-medium">{column.title}</span>
-                    <Badge variant="secondary" className="bg-white/80">
-                      {columnTasks.length}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="bg-white/80">
+                        {columnTasks.length}
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openAddTaskModal(column.id)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 space-y-3">
@@ -239,6 +348,15 @@ const SprintBoard = () => {
                   {columnTasks.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
                       <p className="text-sm">No tasks in {column.title.toLowerCase()}</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openAddTaskModal(column.id)}
+                        className="mt-2"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Task
+                      </Button>
                     </div>
                   )}
                 </CardContent>
@@ -253,6 +371,20 @@ const SprintBoard = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onUpdate={handleTaskUpdate}
+      />
+
+      <AddTaskModal
+        isOpen={isAddTaskModalOpen}
+        onClose={() => setIsAddTaskModalOpen(false)}
+        onAddTask={handleAddTask}
+        defaultStatus={addTaskColumnId}
+      />
+
+      <ColumnCustomizer
+        isOpen={isColumnCustomizerOpen}
+        onClose={() => setIsColumnCustomizerOpen(false)}
+        columns={columns}
+        onUpdateColumns={setColumns}
       />
     </div>
   );
