@@ -1,38 +1,35 @@
 
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Clock, MessageCircle, Heart, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Calendar, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export interface Task {
-  id: string;
-  title: string;
-  description: string;
-  type: 'epic' | 'story' | 'task' | 'sub-task';
-  status: 'todo' | 'in-progress' | 'review' | 'done';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  storyPoints: number;
-  assignee: {
-    name: string;
-    avatar?: string;
-    initials: string;
-  };
-  reporter: {
-    name: string;
-    avatar?: string;
-    initials: string;
-  };
-  likes: number;
-  comments: number;
-  createdAt: string;
-  dueDate?: string;
-  labels: string[];
-}
-
 interface TaskCardProps {
-  task: Task;
-  onClick: () => void;
+  task: {
+    id: string;
+    title: string;
+    description: string;
+    type: 'epic' | 'story' | 'task' | 'sub-task';
+    status: string;
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    storyPoints: number;
+    assignee: {
+      name: string;
+      initials: string;
+      avatar?: string | null;
+    };
+    reporter: {
+      name: string;
+      initials: string;
+      avatar?: string | null;
+    };
+    createdAt: string;
+    labels: string[];
+    onMove?: () => void;
+  };
+  onClick?: () => void;
   isDragging?: boolean;
 }
 
@@ -52,64 +49,82 @@ const priorityColors = {
 
 export function TaskCard({ task, onClick, isDragging }: TaskCardProps) {
   return (
-    <Card
+    <Card 
       className={cn(
-        "p-4 cursor-pointer transition-all duration-200 hover:shadow-lg border-l-4",
-        isDragging && "opacity-50 transform rotate-2",
-        `border-l-${priorityColors[task.priority]}`
+        "cursor-pointer hover:shadow-md transition-all duration-200 group",
+        isDragging && "opacity-50 transform rotate-2"
       )}
       onClick={onClick}
     >
-      <div className="space-y-3">
+      <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className={typeColors[task.type]}>
-              {task.type.toUpperCase()}
-            </Badge>
-            <div className={cn("w-2 h-2 rounded-full", priorityColors[task.priority])} />
-          </div>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Clock className="w-3 h-3" />
-            {task.storyPoints}
-          </div>
-        </div>
-
-        <div>
-          <h4 className="font-medium text-sm leading-5 mb-1">{task.title}</h4>
-          <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>
-        </div>
-
-        {task.labels.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {task.labels.map((label) => (
-              <Badge key={label} variant="outline" className="text-xs">
-                {label}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="secondary" className={cn("text-xs", typeColors[task.type])}>
+                {task.type.toUpperCase()}
               </Badge>
-            ))}
+              <div className={cn("w-2 h-2 rounded-full", priorityColors[task.priority])} />
+            </div>
+            <h3 className="font-semibold text-sm line-clamp-2 mb-1">{task.title}</h3>
+            <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>
           </div>
-        )}
+        </div>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="w-6 h-6">
-              <AvatarImage src={task.assignee.avatar} />
+              <AvatarImage src={task.assignee.avatar || undefined} />
               <AvatarFallback className="text-xs">{task.assignee.initials}</AvatarFallback>
             </Avatar>
             <span className="text-xs text-muted-foreground">{task.assignee.name}</span>
           </div>
           
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Heart className="w-3 h-3" />
-              {task.likes}
-            </div>
-            <div className="flex items-center gap-1">
-              <MessageCircle className="w-3 h-3" />
-              {task.comments}
-            </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs">
+              {task.storyPoints} pts
+            </Badge>
+            {task.onMove && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  task.onMove?.();
+                }}
+              >
+                <ArrowRight className="w-3 h-3" />
+              </Button>
+            )}
           </div>
         </div>
-      </div>
+
+        {task.labels.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {task.labels.slice(0, 3).map((label, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {label}
+              </Badge>
+            ))}
+            {task.labels.length > 3 && (
+              <Badge variant="outline" className="text-xs">
+                +{task.labels.length - 3}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            <span>{task.createdAt}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <User className="w-3 h-3" />
+            <span>{task.reporter.initials}</span>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 }

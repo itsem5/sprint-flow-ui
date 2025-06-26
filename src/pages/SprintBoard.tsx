@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +9,10 @@ import { CreateStoryModal } from "@/components/CreateStoryModal";
 import { CreateTaskModal } from "@/components/CreateTaskModal";
 import { CreateSubTaskModal } from "@/components/CreateSubTaskModal";
 import { ColumnCustomizer } from "@/components/ColumnCustomizer";
+import { SprintManager, Sprint } from "@/components/SprintManager";
+import { TaskMoveModal } from "@/components/TaskMoveModal";
 import { TaskBreadcrumb, BreadcrumbItem } from "@/components/Breadcrumb";
-import { Plus, Filter, Search, Settings, X } from "lucide-react";
+import { Plus, Filter, Search, Settings, X, Calendar, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { KanbanColumn } from "@/types/project";
@@ -24,6 +25,28 @@ const defaultColumns: KanbanColumn[] = [
   { id: 'done', title: 'Done', color: 'bg-green-100', order: 3 }
 ];
 
+// Mock sprints data
+const mockSprints: Sprint[] = [
+  {
+    id: 'sprint-1',
+    name: 'Sprint 23',
+    description: 'User authentication and profile management features',
+    startDate: '2024-01-15',
+    endDate: '2024-01-29',
+    status: 'active',
+    tasks: []
+  },
+  {
+    id: 'sprint-2',
+    name: 'Sprint 24',
+    description: 'Dashboard improvements and analytics',
+    startDate: '2024-01-30',
+    endDate: '2024-02-13',
+    status: 'planning',
+    tasks: []
+  }
+];
+
 const SprintBoard = () => {
   const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,6 +54,9 @@ const SprintBoard = () => {
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
   const [isCreateSubTaskModalOpen, setIsCreateSubTaskModalOpen] = useState(false);
   const [isColumnCustomizerOpen, setIsColumnCustomizerOpen] = useState(false);
+  const [isSprintManagerOpen, setIsSprintManagerOpen] = useState(false);
+  const [isTaskMoveModalOpen, setIsTaskMoveModalOpen] = useState(false);
+  const [taskToMove, setTaskToMove] = useState<TaskWithDetails | null>(null);
   const [draggedTask, setDraggedTask] = useState<TaskWithDetails | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,6 +66,8 @@ const SprintBoard = () => {
   const [columns, setColumns] = useState<KanbanColumn[]>(defaultColumns);
   const [addTaskColumnId, setAddTaskColumnId] = useState<string>('');
   const [tasks, setTasks] = useState<TaskWithDetails[]>([]);
+  const [sprints, setSprints] = useState<Sprint[]>(mockSprints);
+  const [currentSprint, setCurrentSprint] = useState<Sprint | null>(mockSprints[0]);
   const dragCounter = useRef(0);
   const data = useStaticData();
 
@@ -90,6 +118,36 @@ const SprintBoard = () => {
   const handleTaskUpdate = (updatedTask: TaskWithDetails) => {
     setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
     setSelectedTask(updatedTask);
+  };
+
+  const handleCreateSprint = (sprintData: Omit<Sprint, 'id' | 'tasks'>) => {
+    const newSprint: Sprint = {
+      ...sprintData,
+      id: `sprint-${Date.now()}`,
+      tasks: []
+    };
+    setSprints([...sprints, newSprint]);
+  };
+
+  const handleUpdateSprint = (sprintId: string, updates: Partial<Sprint>) => {
+    setSprints(sprints.map(sprint => 
+      sprint.id === sprintId ? { ...sprint, ...updates } : sprint
+    ));
+  };
+
+  const handleSprintChange = (sprintId: string) => {
+    const sprint = sprints.find(s => s.id === sprintId);
+    setCurrentSprint(sprint || null);
+  };
+
+  const handleMoveTask = (taskId: string, targetSprintId: string | null) => {
+    console.log(`Moving task ${taskId} to ${targetSprintId || 'backlog'}`);
+    // In a real app, this would update the task's sprint assignment
+  };
+
+  const openTaskMoveModal = (task: TaskWithDetails) => {
+    setTaskToMove(task);
+    setIsTaskMoveModalOpen(true);
   };
 
   const handleCreateStory = (storyData: { name: string; description: string; epicId: string }) => {
@@ -157,7 +215,7 @@ const SprintBoard = () => {
     return filteredTasks.filter(task => task.status === columnId);
   };
 
-  // Convert TaskWithDetails to the format expected by TaskCard
+  // Convert TaskWithDetails to the format expected by TaskCard (removed likes and comments)
   const convertTaskForCard = (task: TaskWithDetails) => ({
     id: task.id,
     title: task.name,
@@ -176,10 +234,9 @@ const SprintBoard = () => {
       initials: task.reporter.initials,
       avatar: task.reporter.avatar
     },
-    likes: task.likes,
-    comments: task.comments,
     createdAt: new Date(task.createdAt).toLocaleDateString(),
-    labels: task.labels
+    labels: task.labels,
+    onMove: () => openTaskMoveModal(task)
   });
 
   return (
@@ -191,8 +248,18 @@ const SprintBoard = () => {
           <div className="flex items-center gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-2xl font-bold">Sprint Board</h1>
-              <p className="text-muted-foreground">Sprint 23 - Development Team</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold">Sprint Board</h1>
+                {currentSprint && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    <Calendar className="w-3 h-3 mr-1" />
+                    {currentSprint.name}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-muted-foreground">
+                {currentSprint ? `${currentSprint.description} • Development Team` : 'No active sprint'}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -250,6 +317,11 @@ const SprintBoard = () => {
                 Clear
               </Button>
             )}
+
+            <Button variant="outline" size="sm" onClick={() => setIsSprintManagerOpen(true)}>
+              <Calendar className="w-4 h-4 mr-2" />
+              Sprints
+            </Button>
 
             <Button variant="outline" size="sm" onClick={() => setIsColumnCustomizerOpen(true)}>
               <Settings className="w-4 h-4 mr-2" />
@@ -348,6 +420,25 @@ const SprintBoard = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onUpdate={handleTaskUpdate}
+      />
+
+      <SprintManager
+        isOpen={isSprintManagerOpen}
+        onClose={() => setIsSprintManagerOpen(false)}
+        sprints={sprints}
+        onCreateSprint={handleCreateSprint}
+        onUpdateSprint={handleUpdateSprint}
+        currentSprint={currentSprint}
+        onSprintChange={handleSprintChange}
+      />
+
+      <TaskMoveModal
+        isOpen={isTaskMoveModalOpen}
+        onClose={() => setIsTaskMoveModalOpen(false)}
+        task={taskToMove}
+        sprints={sprints}
+        currentSprint={currentSprint}
+        onMoveTask={handleMoveTask}
       />
 
       <CreateStoryModal
