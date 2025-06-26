@@ -20,7 +20,7 @@ export interface Attachment {
   uploadedBy: string;
 }
 
-export interface TaskWithDetails extends Omit<Task, 'assignee' | 'reporter'> {
+export interface TaskWithDetails extends Task {
   assignee: User;
   reporter: User;
   attachments: Attachment[];
@@ -65,6 +65,9 @@ export const useStaticData = () => {
 
         return {
           ...task,
+          type: task.type as 'epic' | 'story' | 'task' | 'sub-task',
+          status: task.status as 'todo' | 'in-progress' | 'review' | 'done',
+          priority: task.priority as 'low' | 'medium' | 'high' | 'urgent',
           assignee: assignee || users[0],
           reporter: reporter || users[0],
           attachments: taskAttachments,
@@ -87,6 +90,7 @@ export const useStaticData = () => {
       // Process projects with epic details
       const projects: ProjectWithDetails[] = staticData.projects.map(project => ({
         ...project,
+        status: project.status as 'active' | 'inactive' | 'completed',
         epics: epics.filter(e => e.projectId === project.id)
       }));
 

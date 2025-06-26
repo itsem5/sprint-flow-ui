@@ -5,118 +5,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { TaskCard, Task } from "@/components/TaskCard";
+import { TaskCard } from "@/components/TaskCard";
 import { TaskModal } from "@/components/TaskModal";
 import { Plus, Search, Filter, ChevronDown, ChevronRight } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-
-const mockBacklogTasks: Task[] = [
-  {
-    id: 'epic-1',
-    title: 'User Management System',
-    description: 'Complete overhaul of user management with advanced permissions',
-    type: 'epic',
-    status: 'todo',
-    priority: 'high',
-    storyPoints: 21,
-    assignee: { name: 'John Doe', initials: 'JD' },
-    reporter: { name: 'Jane Smith', initials: 'JS' },
-    likes: 5,
-    comments: 12,
-    createdAt: '2024-01-10',
-    labels: ['user-mgmt', 'security']
-  },
-  {
-    id: 'story-1',
-    title: 'User Registration Flow',
-    description: 'Implement user registration with email verification',
-    type: 'story',
-    status: 'todo',
-    priority: 'high',
-    storyPoints: 8,
-    assignee: { name: 'Alice Brown', initials: 'AB' },
-    reporter: { name: 'John Doe', initials: 'JD' },
-    likes: 3,
-    comments: 7,
-    createdAt: '2024-01-11',
-    labels: ['frontend', 'backend']
-  },
-  {
-    id: 'story-2',
-    title: 'Password Reset Functionality',
-    description: 'Allow users to reset their passwords via email',
-    type: 'story',
-    status: 'todo',
-    priority: 'medium',
-    storyPoints: 5,
-    assignee: { name: 'Bob Wilson', initials: 'BW' },
-    reporter: { name: 'John Doe', initials: 'JD' },
-    likes: 2,
-    comments: 4,
-    createdAt: '2024-01-12',
-    labels: ['backend', 'email']
-  },
-  {
-    id: 'epic-2',
-    title: 'Reporting Dashboard',
-    description: 'Advanced analytics and reporting features',
-    type: 'epic',
-    status: 'todo',
-    priority: 'medium',
-    storyPoints: 34,
-    assignee: { name: 'Jane Smith', initials: 'JS' },
-    reporter: { name: 'Alice Brown', initials: 'AB' },
-    likes: 8,
-    comments: 15,
-    createdAt: '2024-01-08',
-    labels: ['analytics', 'dashboard']
-  },
-  {
-    id: 'story-3',
-    title: 'Chart Visualization',
-    description: 'Interactive charts for data visualization',
-    type: 'story',
-    status: 'todo',
-    priority: 'low',
-    storyPoints: 13,
-    assignee: { name: 'John Doe', initials: 'JD' },
-    reporter: { name: 'Jane Smith', initials: 'JS' },
-    likes: 6,
-    comments: 9,
-    createdAt: '2024-01-09',
-    labels: ['frontend', 'charts']
-  },
-  {
-    id: 'task-1',
-    title: 'Database Performance Optimization',
-    description: 'Optimize slow database queries',
-    type: 'task',
-    status: 'todo',
-    priority: 'urgent',
-    storyPoints: 8,
-    assignee: { name: 'Bob Wilson', initials: 'BW' },
-    reporter: { name: 'John Doe', initials: 'JD' },
-    likes: 1,
-    comments: 3,
-    createdAt: '2024-01-13',
-    labels: ['database', 'performance']
-  },
-];
+import { useStaticData, TaskWithDetails } from "@/hooks/useStaticData";
 
 const Backlog = () => {
-  const [tasks, setTasks] = useState<Task[]>(mockBacklogTasks);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['epics', 'stories', 'tasks']));
+  const data = useStaticData();
 
-  const handleTaskClick = (task: Task) => {
+  const tasks = data?.tasks || [];
+
+  const handleTaskClick = (task: TaskWithDetails) => {
     setSelectedTask(task);
     setIsModalOpen(true);
   };
 
-  const handleTaskUpdate = (updatedTask: Task) => {
-    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+  const handleTaskUpdate = (updatedTask: TaskWithDetails) => {
     setSelectedTask(updatedTask);
   };
 
@@ -131,7 +40,7 @@ const Backlog = () => {
   };
 
   const filteredTasks = tasks.filter(task =>
-    task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    task.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     task.assignee.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -140,9 +49,34 @@ const Backlog = () => {
   const stories = filteredTasks.filter(task => task.type === 'story');
   const taskItems = filteredTasks.filter(task => task.type === 'task');
 
-  const getTotalStoryPoints = (taskList: Task[]) => {
+  const getTotalStoryPoints = (taskList: TaskWithDetails[]) => {
     return taskList.reduce((total, task) => total + task.storyPoints, 0);
   };
+
+  // Convert TaskWithDetails to the format expected by TaskCard
+  const convertTaskForCard = (task: TaskWithDetails) => ({
+    id: task.id,
+    title: task.name,
+    description: task.description,
+    type: task.type,
+    status: task.status,
+    priority: task.priority,
+    storyPoints: task.storyPoints,
+    assignee: {
+      name: task.assignee.name,
+      initials: task.assignee.initials,
+      avatar: task.assignee.avatar
+    },
+    reporter: {
+      name: task.reporter.name,
+      initials: task.reporter.initials,
+      avatar: task.reporter.avatar
+    },
+    likes: task.likes,
+    comments: task.comments,
+    createdAt: new Date(task.createdAt).toLocaleDateString(),
+    labels: task.labels
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -211,7 +145,7 @@ const Backlog = () => {
                     {epics.map((task) => (
                       <TaskCard
                         key={task.id}
-                        task={task}
+                        task={convertTaskForCard(task)}
                         onClick={() => handleTaskClick(task)}
                       />
                     ))}
@@ -258,7 +192,7 @@ const Backlog = () => {
                     {stories.map((task) => (
                       <TaskCard
                         key={task.id}
-                        task={task}
+                        task={convertTaskForCard(task)}
                         onClick={() => handleTaskClick(task)}
                       />
                     ))}
@@ -305,7 +239,7 @@ const Backlog = () => {
                     {taskItems.map((task) => (
                       <TaskCard
                         key={task.id}
-                        task={task}
+                        task={convertTaskForCard(task)}
                         onClick={() => handleTaskClick(task)}
                       />
                     ))}
