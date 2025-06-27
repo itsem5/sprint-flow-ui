@@ -11,7 +11,7 @@ interface TaskCardProps {
     id: string;
     title: string;
     description: string;
-    type: 'epic' | 'story' | 'task' | 'sub-task';
+    type: 'epic' | 'story' | 'task' | 'sub-task' | 'issue';
     status: string;
     priority: 'low' | 'medium' | 'high' | 'urgent';
     storyPoints: number;
@@ -38,6 +38,7 @@ const typeColors = {
   story: 'bg-green-100 text-green-800 border-green-200',
   task: 'bg-blue-100 text-blue-800 border-blue-200',
   'sub-task': 'bg-gray-100 text-gray-800 border-gray-200',
+  issue: 'bg-red-100 text-red-800 border-red-200',
 };
 
 const priorityColors = {
