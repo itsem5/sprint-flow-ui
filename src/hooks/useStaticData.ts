@@ -79,7 +79,7 @@ export const useStaticData = () => {
           reporter: reporter || users[0],
           attachments: taskAttachments,
           subTasks: taskSubTasks,
-          relatedTickets: task.relatedTickets || []
+          relatedTickets: (task as any).relatedTickets || []
         };
       });
 
@@ -99,7 +99,7 @@ export const useStaticData = () => {
       const projects: ProjectWithDetails[] = staticData.projects.map(project => ({
         ...project,
         status: project.status as 'active' | 'inactive' | 'completed',
-        ticketCounter: project.ticketCounter || {
+        ticketCounter: (project as any).ticketCounter || {
           story: 0,
           task: 0,
           'sub-task': 0,

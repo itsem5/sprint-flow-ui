@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CalendarDays, Users, Activity, Plus, Search, Filter } from "lucide-react";
+import { CalendarDays, Users, Activity, Plus, Search, Filter, X } from "lucide-react";
 import { Project } from "@/types/project";
 
 const mockProjects: Project[] = [
