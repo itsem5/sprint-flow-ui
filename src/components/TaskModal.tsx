@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,8 @@ import { MessageCircle, Clock, User, Calendar, Tag, Paperclip, Upload, X } from 
 import { TaskWithDetails, User as UserType, Attachment } from "@/hooks/useStaticData";
 import { cn } from "@/lib/utils";
 import { useStaticData } from "@/hooks/useStaticData";
+import { RelatedTicketsTable } from "@/components/RelatedTicketsTable";
+import { getTicketTypeColor } from "@/utils/ticketUtils";
 
 interface TaskModalProps {
   task: TaskWithDetails | null;
@@ -62,6 +63,9 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
   const [newComment, setNewComment] = useState('');
   const [editingTask, setEditingTask] = useState<TaskWithDetails | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>(task?.attachments || []);
+  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
+  const [isCreateSubTaskModalOpen, setIsCreateSubTaskModalOpen] = useState(false);
+  const [isCreateBugModalOpen, setIsCreateBugModalOpen] = useState(false);
   const data = useStaticData();
 
   if (!task) return null;
@@ -147,12 +151,47 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Get related tickets (tasks under story, subtasks/bugs under task)
+  const getRelatedTasks = () => {
+    if (!data?.tasks) return [];
+    
+    if (currentTask.type === 'story') {
+      return data.tasks.filter(t => t.storyId === currentTask.id);
+    } else if (currentTask.type === 'task') {
+      return data.tasks.filter(t => t.parentTaskId === currentTask.id);
+    }
+    return [];
+  };
+
+  const relatedTasks = getRelatedTasks();
+
+  const handleCreateTask = () => {
+    setIsCreateTaskModalOpen(true);
+  };
+
+  const handleCreateSubTask = () => {
+    setIsCreateSubTaskModalOpen(true);
+  };
+
+  const handleCreateBug = () => {
+    setIsCreateBugModalOpen(true);
+  };
+
+  const handleRelatedTicketClick = (ticket: TaskWithDetails) => {
+    onUpdate(ticket);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold">Task Details</DialogTitle>
+            <div className="flex items-center gap-3">
+              <Badge variant="secondary" className={getTicketTypeColor(currentTask.type)}>
+                {currentTask.ticketId}
+              </Badge>
+              <DialogTitle className="text-2xl font-bold">{currentTask.name}</DialogTitle>
+            </div>
             <div className="flex items-center gap-2">
               {!editingTask ? (
                 <Button onClick={handleEdit} variant="outline">Edit</Button>
@@ -192,6 +231,30 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
             </div>
 
             <Separator />
+
+            {/* Related Tasks/Subtasks Section */}
+            {(currentTask.type === 'story' || currentTask.type === 'task') && (
+              <>
+                <RelatedTicketsTable
+                  tickets={relatedTasks}
+                  title={currentTask.type === 'story' ? 'Tasks' : 'Sub-tasks & Bugs'}
+                  onCreateNew={currentTask.type === 'story' ? handleCreateTask : handleCreateSubTask}
+                  onTicketClick={handleRelatedTicketClick}
+                  createButtonText={currentTask.type === 'story' ? 'Create Task' : 'Create Sub-task'}
+                />
+                
+                {currentTask.type === 'task' && (
+                  <div className="flex gap-2">
+                    <Button onClick={handleCreateBug} variant="outline" size="sm">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Report Bug
+                    </Button>
+                  </div>
+                )}
+                
+                <Separator />
+              </>
+            )}
 
             {/* Attachments Section */}
             <div className="space-y-4">
@@ -239,27 +302,6 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
                         <X className="w-4 h-4" />
                       </Button>
                     )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Sub-tasks Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Tag className="w-5 h-5" />
-                <h3 className="text-lg font-semibold">Sub-tasks ({currentTask.subTasks.length})</h3>
-              </div>
-
-              <div className="space-y-2">
-                {currentTask.subTasks.map((subTask) => (
-                  <div key={subTask.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{subTask.name}</p>
-                      <p className="text-xs text-muted-foreground">{subTask.description}</p>
-                    </div>
                   </div>
                 ))}
               </div>
@@ -316,7 +358,7 @@ export function TaskModal({ task, isOpen, onClose, onUpdate }: TaskModalProps) {
                 <span className="font-medium">Type & Priority</span>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className={typeColors[currentTask.type]}>
+                <Badge variant="secondary" className={getTicketTypeColor(currentTask.type)}>
                   {currentTask.type.toUpperCase()}
                 </Badge>
                 <div className={cn("w-3 h-3 rounded-full", priorityColors[currentTask.priority])} />

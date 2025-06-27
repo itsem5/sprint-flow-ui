@@ -62,7 +62,7 @@ export function TaskCard({ task, onClick, isDragging }: TaskCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="secondary" className={cn("text-xs", typeColors[task.type])}>
-                {task.type.toUpperCase()}
+                {task.id} {/* This should be ticketId in real implementation */}
               </Badge>
               <div className={cn("w-2 h-2 rounded-full", priorityColors[task.priority])} />
             </div>

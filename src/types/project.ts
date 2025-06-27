@@ -11,6 +11,13 @@ export interface Project {
   epicCount: number;
   storyCount: number;
   taskCount: number;
+  ticketCounter: {
+    story: number;
+    task: number;
+    'sub-task': number;
+    bug: number;
+    issue: number;
+  };
 }
 
 export interface Epic {
@@ -31,11 +38,13 @@ export interface Story {
 
 export interface Task {
   id: string;
+  ticketId: string; // e.g., "TASK-34", "BUG-46"
   projectId?: string;
   storyId?: string;
+  parentTaskId?: string; // For sub-tasks and bugs linked to tasks
   name: string;
   description: string;
-  type: 'epic' | 'story' | 'task' | 'sub-task' | 'issue';
+  type: 'epic' | 'story' | 'task' | 'sub-task' | 'bug' | 'issue';
   status: 'todo' | 'in-progress' | 'review' | 'done';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   storyPoints: number;
@@ -47,13 +56,16 @@ export interface Task {
   labels: string[];
   attachments: string[];
   subTasks: string[];
+  relatedTickets: string[]; // IDs of related tickets
 }
 
 export interface SubTask {
   id: string;
+  ticketId: string;
   taskId: string;
   name: string;
   description: string;
+  status: 'todo' | 'in-progress' | 'review' | 'done';
 }
 
 export interface KanbanColumn {

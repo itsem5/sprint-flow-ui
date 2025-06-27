@@ -21,6 +21,7 @@ export interface Attachment {
 }
 
 export interface TaskWithDetails extends Omit<Task, 'attachments' | 'subTasks'> {
+  ticketId: string;
   assignee: User;
   reporter: User;
   attachments: Attachment[];
@@ -57,15 +58,20 @@ export const useStaticData = () => {
       const subTasks = staticData.subTasks as SubTask[];
       
       // Process tasks with user and attachment details
-      const tasks: TaskWithDetails[] = staticData.tasks.map(task => {
+      const tasks: TaskWithDetails[] = staticData.tasks.map((task, index) => {
         const assignee = users.find(u => u.id === task.assigneeId);
         const reporter = users.find(u => u.id === task.reporterId);
         const taskAttachments = attachments.filter(a => task.attachments.includes(a.id));
         const taskSubTasks = subTasks.filter(st => task.subTasks.includes(st.id));
 
+        // Generate ticket ID based on type and index
+        const typePrefix = task.type.toUpperCase().replace('-', '');
+        const ticketId = `${typePrefix}-${(index + 1).toString().padStart(3, '0')}`;
+
         return {
           ...task,
-          type: task.type as 'epic' | 'story' | 'task' | 'sub-task',
+          ticketId,
+          type: task.type as 'epic' | 'story' | 'task' | 'sub-task' | 'issue',
           status: task.status as 'todo' | 'in-progress' | 'review' | 'done',
           priority: task.priority as 'low' | 'medium' | 'high' | 'urgent',
           assignee: assignee || users[0],

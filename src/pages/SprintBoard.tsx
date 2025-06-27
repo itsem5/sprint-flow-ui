@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { TaskCard } from "@/components/TaskCard";
 import { TaskModal } from "@/components/TaskModal";
 import { CreateStoryModal } from "@/components/CreateStoryModal";
-import { CreateTaskModal } from "@/components/CreateTaskModal";
-import { CreateSubTaskModal } from "@/components/CreateSubTaskModal";
 import { ColumnCustomizer } from "@/components/ColumnCustomizer";
 import { SprintManager, Sprint } from "@/components/SprintManager";
 import { TaskMoveModal } from "@/components/TaskMoveModal";
@@ -51,8 +49,6 @@ const SprintBoard = () => {
   const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateStoryModalOpen, setIsCreateStoryModalOpen] = useState(false);
-  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
-  const [isCreateSubTaskModalOpen, setIsCreateSubTaskModalOpen] = useState(false);
   const [isColumnCustomizerOpen, setIsColumnCustomizerOpen] = useState(false);
   const [isSprintManagerOpen, setIsSprintManagerOpen] = useState(false);
   const [isTaskMoveModalOpen, setIsTaskMoveModalOpen] = useState(false);
@@ -64,7 +60,6 @@ const SprintBoard = () => {
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [columns, setColumns] = useState<KanbanColumn[]>(defaultColumns);
-  const [addTaskColumnId, setAddTaskColumnId] = useState<string>('');
   const [tasks, setTasks] = useState<TaskWithDetails[]>([]);
   const [sprints, setSprints] = useState<Sprint[]>(mockSprints);
   const [currentSprint, setCurrentSprint] = useState<Sprint | null>(mockSprints[0]);
@@ -153,21 +148,6 @@ const SprintBoard = () => {
   const handleCreateStory = (storyData: { name: string; description: string; epicId: string }) => {
     console.log('Creating story:', storyData);
     // In a real app, this would create a new story
-  };
-
-  const handleCreateTask = (taskData: any) => {
-    console.log('Creating task:', taskData);
-    // In a real app, this would create a new task
-  };
-
-  const handleCreateSubTask = (subTaskData: { name: string; description: string; taskId: string }) => {
-    console.log('Creating sub-task:', subTaskData);
-    // In a real app, this would create a new sub-task
-  };
-
-  const openCreateTaskModal = (columnId?: string) => {
-    setAddTaskColumnId(columnId || 'todo');
-    setIsCreateTaskModalOpen(true);
   };
 
   const handleDragStart = (e: React.DragEvent, task: TaskWithDetails) => {
@@ -332,16 +312,6 @@ const SprintBoard = () => {
               <Plus className="w-4 h-4 mr-2" />
               Story
             </Button>
-            
-            <Button size="sm" onClick={() => openCreateTaskModal()}>
-              <Plus className="w-4 h-4 mr-2" />
-              Task
-            </Button>
-            
-            <Button size="sm" onClick={() => setIsCreateSubTaskModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Sub-task
-            </Button>
           </div>
         </div>
 
@@ -368,14 +338,6 @@ const SprintBoard = () => {
                       <Badge variant="secondary" className="bg-white/80">
                         {columnTasks.length}
                       </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openCreateTaskModal(column.id)}
-                        className="h-6 w-6 p-0"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
                     </div>
                   </CardTitle>
                 </CardHeader>
@@ -397,15 +359,6 @@ const SprintBoard = () => {
                   {columnTasks.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
                       <p className="text-sm">No tasks in {column.title.toLowerCase()}</p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openCreateTaskModal(column.id)}
-                        className="mt-2"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Task
-                      </Button>
                     </div>
                   )}
                 </CardContent>
@@ -446,20 +399,6 @@ const SprintBoard = () => {
         onClose={() => setIsCreateStoryModalOpen(false)}
         onCreateStory={handleCreateStory}
         projectId="proj-1"
-      />
-
-      <CreateTaskModal
-        isOpen={isCreateTaskModalOpen}
-        onClose={() => setIsCreateTaskModalOpen(false)}
-        onCreateTask={handleCreateTask}
-        epicId="epic-1"
-      />
-
-      <CreateSubTaskModal
-        isOpen={isCreateSubTaskModalOpen}
-        onClose={() => setIsCreateSubTaskModalOpen(false)}
-        onCreateSubTask={handleCreateSubTask}
-        storyId="story-1"
       />
 
       <ColumnCustomizer
