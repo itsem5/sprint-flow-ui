@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { MessageCircle, Clock, User, Calendar, Tag, Paperclip, Upload, X } from "lucide-react";
+import { MessageCircle, Clock, User, Calendar, Tag, Paperclip, Upload, X, Plus } from "lucide-react";
 import { TaskWithDetails, User as UserType, Attachment } from "@/hooks/useStaticData";
 import { cn } from "@/lib/utils";
 import { useStaticData } from "@/hooks/useStaticData";

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TagSelector } from "@/components/TagSelector";
 import { Task } from "@/types/project";
 import { useProject } from "@/contexts/ProjectContext";
+import { generateTicketId } from "@/utils/ticketUtils";
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -40,7 +41,11 @@ export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo
   const handleSubmit = () => {
     if (!formData.name.trim() || !selectedProject) return;
     
+    // Generate ticket ID based on type and current counter
+    const ticketId = generateTicketId(formData.type, selectedProject.ticketCounter[formData.type] + 1);
+    
     const newTask: Omit<Task, 'id'> = {
+      ticketId,
       name: formData.name,
       description: formData.description,
       type: formData.type,
@@ -55,7 +60,8 @@ export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo
       createdAt: new Date().toISOString().split('T')[0],
       labels: formData.labels,
       attachments: [],
-      subTasks: []
+      subTasks: [],
+      relatedTickets: []
     };
 
     onAddTask(newTask);
@@ -131,6 +137,7 @@ export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo
                   <SelectItem value="story">Story</SelectItem>
                   <SelectItem value="task">Task</SelectItem>
                   <SelectItem value="sub-task">Sub-task</SelectItem>
+                  <SelectItem value="bug">Bug</SelectItem>
                   <SelectItem value="issue">Issue</SelectItem>
                 </SelectContent>
               </Select>

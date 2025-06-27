@@ -1,113 +1,100 @@
-
 import { useState } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Calendar, User, Target, Users, FolderKanban, List, CheckCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CalendarDays, Users, Activity, Plus, Search, Filter } from "lucide-react";
 import { Project } from "@/types/project";
 
 const mockProjects: Project[] = [
   {
-    id: '1',
+    id: 'proj-1',
     name: 'E-commerce Platform',
-    description: 'Building a modern e-commerce platform with React and Node.js',
+    description: 'A comprehensive online shopping platform with advanced features',
     createdBy: 'John Doe',
     createdAt: '2024-01-15',
-    successCriteria: [
-      'Complete user authentication system',
-      'Implement payment gateway integration',
-      'Deploy to production with 99.9% uptime'
-    ],
+    successCriteria: ['Complete user authentication', 'Payment gateway integration', 'Mobile responsive design'],
     status: 'active',
     members: 8,
     epicCount: 3,
-    storyCount: 15,
-    taskCount: 45
+    storyCount: 12,
+    taskCount: 45,
+    ticketCounter: { story: 12, task: 45, 'sub-task': 23, bug: 8, issue: 5 }
   },
   {
-    id: '2',
-    name: 'Mobile App Development',
-    description: 'Cross-platform mobile application for task management',
+    id: 'proj-2',
+    name: 'Mobile Banking App',
+    description: 'Secure mobile banking application with biometric authentication',
     createdBy: 'Jane Smith',
     createdAt: '2024-02-01',
-    successCriteria: [
-      'Launch on both iOS and Android',
-      'Achieve 10,000+ downloads in first month',
-      'Maintain 4.5+ star rating'
-    ],
+    successCriteria: ['Implement biometric login', 'Real-time transaction alerts', 'Offline mode support'],
     status: 'active',
-    members: 5,
+    members: 6,
     epicCount: 2,
-    storyCount: 12,
-    taskCount: 28
+    storyCount: 8,
+    taskCount: 32,
+    ticketCounter: { story: 8, task: 32, 'sub-task': 15, bug: 4, issue: 2 }
   },
   {
-    id: '3',
-    name: 'Data Analytics Dashboard',
-    description: 'Real-time analytics dashboard for business intelligence',
-    createdBy: 'Bob Wilson',
-    createdAt: '2023-12-10',
-    successCriteria: [
-      'Process 1M+ data points daily',
-      'Sub-second query response times',
-      'Support 100+ concurrent users'
-    ],
+    id: 'proj-3',
+    name: 'Healthcare Management',
+    description: 'Patient management system for healthcare providers',
+    createdBy: 'Dr. Wilson',
+    createdAt: '2023-11-20',
+    successCriteria: ['HIPAA compliance', 'Electronic health records', 'Appointment scheduling'],
     status: 'completed',
-    members: 6,
+    members: 5,
     epicCount: 4,
-    storyCount: 20,
-    taskCount: 60
+    storyCount: 15,
+    taskCount: 67,
+    ticketCounter: { story: 15, task: 67, 'sub-task': 34, bug: 12, issue: 7 }
   }
 ];
 
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>(mockProjects);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newProject, setNewProject] = useState({
-    name: '',
-    description: '',
-    successCriteria: ''
-  });
-
-  const filteredProjects = projects.filter(project =>
-    project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
 
   const handleCreateProject = () => {
-    const project: Project = {
-      id: Date.now().toString(),
-      name: newProject.name,
-      description: newProject.description,
+    const newProject: Project = {
+      id: `proj-${Date.now()}`,
+      name: 'New Project',
+      description: 'Project description',
       createdBy: 'Current User',
       createdAt: new Date().toISOString().split('T')[0],
-      successCriteria: newProject.successCriteria.split('\n').filter(criteria => criteria.trim()),
+      successCriteria: [],
       status: 'active',
       members: 1,
       epicCount: 0,
       storyCount: 0,
-      taskCount: 0
+      taskCount: 0,
+      ticketCounter: { story: 0, task: 0, 'sub-task': 0, bug: 0, issue: 0 }
     };
     
-    setProjects([...projects, project]);
-    setNewProject({ name: '', description: '', successCriteria: '' });
-    setIsCreateModalOpen(false);
+    setProjects([...projects, newProject]);
+    setIsCreateProjectOpen(false);
   };
 
-  const getStatusColor = (status: Project['status']) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const filteredProjects = projects.filter(project => {
+    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = selectedStatus === 'all' || project.status === selectedStatus;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedStatus('all');
   };
+
+  const hasActiveFilters = searchQuery || selectedStatus !== 'all';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -115,10 +102,7 @@ const Projects = () => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <div>
-              <h1 className="text-2xl font-bold">Projects</h1>
-              <p className="text-muted-foreground">Manage your project portfolio</p>
-            </div>
+            <h1 className="text-2xl font-bold">Projects</h1>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -130,148 +114,85 @@ const Projects = () => {
                 className="w-64"
               />
             </div>
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Project
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Create New Project</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Project Name</label>
-                    <Input
-                      value={newProject.name}
-                      onChange={(e) => setNewProject({...newProject, name: e.target.value})}
-                      placeholder="Enter project name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Description</label>
-                    <Textarea
-                      value={newProject.description}
-                      onChange={(e) => setNewProject({...newProject, description: e.target.value})}
-                      placeholder="Describe your project"
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Success Criteria (one per line)</label>
-                    <Textarea
-                      value={newProject.successCriteria}
-                      onChange={(e) => setNewProject({...newProject, successCriteria: e.target.value})}
-                      placeholder="Define success criteria for this project"
-                      rows={4}
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleCreateProject} disabled={!newProject.name}>
-                      Create Project
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="rounded-md border appearance-none bg-white border-gray-300 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="completed">Completed</option>
+            </select>
+
+            {hasActiveFilters && (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                <X className="w-4 h-4 mr-2" />
+                Clear
+              </Button>
+            )}
+
+            <Button onClick={() => setIsCreateProjectOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Project
+            </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => (
-            <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+          {filteredProjects.map(project => (
+            <Card key={project.id}>
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg mb-2">
-                      <Link to={`/project/${project.id}`} className="hover:text-blue-600">
-                        {project.name}
-                      </Link>
-                    </CardTitle>
-                    <Badge className={getStatusColor(project.status)}>
-                      {project.status.toUpperCase()}
+                <CardTitle className="text-lg font-semibold">{project.name}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-sm text-muted-foreground">{project.description}</p>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CalendarDays className="w-4 h-4" />
+                  <span>Created: {project.createdAt}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Users className="w-4 h-4" />
+                  <span>Members: {project.members}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Activity className="w-4 h-4" />
+                  <span>Progress:</span>
+                  <Progress value={(project.taskCount / 100) * 100} className="w-32" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Badge variant="secondary">
+                      {project.status}
                     </Badge>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {project.description}
-                </p>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-muted-foreground" />
-                    <span>{project.createdBy}</span>
+                    <Avatar className="w-6 h-6">
+                      <AvatarImage src="https://github.com/shadcn.png" alt="Avatar" />
+                      <AvatarFallback>CN</AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs text-muted-foreground">Created by {project.createdBy}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span>{project.createdAt}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                    <span>{project.members} members</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FolderKanban className="w-4 h-4 text-muted-foreground" />
-                    <span>{project.taskCount} tasks</span>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium mb-2 flex items-center gap-1">
-                    <Target className="w-4 h-4" />
-                    Success Criteria
-                  </h4>
-                  <ul className="space-y-1">
-                    {project.successCriteria.slice(0, 2).map((criteria, index) => (
-                      <li key={index} className="text-xs text-muted-foreground flex items-start gap-1">
-                        <CheckCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                        {criteria}
-                      </li>
-                    ))}
-                    {project.successCriteria.length > 2 && (
-                      <li className="text-xs text-muted-foreground">
-                        +{project.successCriteria.length - 2} more...
-                      </li>
-                    )}
-                  </ul>
-                </div>
-
-                <div className="flex justify-between pt-2 border-t">
-                  <Link to={`/project/${project.id}/backlog`}>
-                    <Button variant="ghost" size="sm">
-                      <List className="w-4 h-4 mr-1" />
-                      Backlog
-                    </Button>
-                  </Link>
-                  <Link to={`/project/${project.id}/sprint`}>
-                    <Button variant="ghost" size="sm">
-                      <FolderKanban className="w-4 h-4 mr-1" />
-                      Sprint
-                    </Button>
-                  </Link>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
-
-        {filteredProjects.length === 0 && (
-          <div className="text-center py-12">
-            <FolderKanban className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No projects found</h3>
-            <p className="text-muted-foreground">
-              {searchQuery ? 'Try adjusting your search terms' : 'Create your first project to get started'}
-            </p>
-          </div>
-        )}
       </div>
+
+      {isCreateProjectOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-md shadow-lg w-96">
+            <h2 className="text-lg font-semibold mb-4">Create New Project</h2>
+            <p>Are you sure you want to create a new project?</p>
+            <div className="flex justify-end gap-4 mt-4">
+              <Button variant="ghost" onClick={() => setIsCreateProjectOpen(false)}>Cancel</Button>
+              <Button onClick={handleCreateProject}>Create</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

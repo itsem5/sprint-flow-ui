@@ -26,6 +26,7 @@ export interface TaskWithDetails extends Omit<Task, 'attachments' | 'subTasks'> 
   reporter: User;
   attachments: Attachment[];
   subTasks: SubTask[];
+  relatedTickets: string[];
 }
 
 export interface StoryWithDetails extends Omit<Story, 'tasks'> {
@@ -71,13 +72,14 @@ export const useStaticData = () => {
         return {
           ...task,
           ticketId,
-          type: task.type as 'epic' | 'story' | 'task' | 'sub-task' | 'issue',
+          type: task.type as 'epic' | 'story' | 'task' | 'sub-task' | 'bug' | 'issue',
           status: task.status as 'todo' | 'in-progress' | 'review' | 'done',
           priority: task.priority as 'low' | 'medium' | 'high' | 'urgent',
           assignee: assignee || users[0],
           reporter: reporter || users[0],
           attachments: taskAttachments,
-          subTasks: taskSubTasks
+          subTasks: taskSubTasks,
+          relatedTickets: task.relatedTickets || []
         };
       });
 
@@ -97,6 +99,13 @@ export const useStaticData = () => {
       const projects: ProjectWithDetails[] = staticData.projects.map(project => ({
         ...project,
         status: project.status as 'active' | 'inactive' | 'completed',
+        ticketCounter: project.ticketCounter || {
+          story: 0,
+          task: 0,
+          'sub-task': 0,
+          bug: 0,
+          issue: 0
+        },
         epics: epics.filter(e => e.projectId === project.id)
       }));
 
