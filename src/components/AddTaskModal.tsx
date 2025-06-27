@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { TagSelector } from "@/components/TagSelector";
 import { Task } from "@/types/project";
+import { useProject } from "@/contexts/ProjectContext";
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -24,6 +24,7 @@ const developers = [
 ];
 
 export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo' }: AddTaskModalProps) {
+  const { selectedProject } = useProject();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -33,12 +34,11 @@ export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo
     storyPoints: 1,
     assigneeId: 'user-1',
     reporterId: 'current-user',
-    labels: [] as string[],
-    newLabel: ''
+    labels: [] as string[]
   });
 
   const handleSubmit = () => {
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim() || !selectedProject) return;
     
     const newTask: Omit<Task, 'id'> = {
       name: formData.name,
@@ -49,6 +49,7 @@ export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo
       storyPoints: formData.storyPoints,
       assigneeId: formData.assigneeId,
       reporterId: formData.reporterId,
+      projectId: selectedProject.id,
       likes: 0,
       comments: 0,
       createdAt: new Date().toISOString().split('T')[0],
@@ -69,35 +70,33 @@ export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo
       storyPoints: 1,
       assigneeId: 'user-1',
       reporterId: 'current-user',
-      labels: [],
-      newLabel: ''
+      labels: []
     });
     
     onClose();
   };
 
-  const addLabel = () => {
-    if (formData.newLabel.trim() && !formData.labels.includes(formData.newLabel.trim())) {
-      setFormData({
-        ...formData,
-        labels: [...formData.labels, formData.newLabel.trim()],
-        newLabel: ''
-      });
-    }
-  };
-
-  const removeLabel = (labelToRemove: string) => {
-    setFormData({
-      ...formData,
-      labels: formData.labels.filter(label => label !== labelToRemove)
-    });
-  };
+  if (!selectedProject) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>No Project Selected</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-muted-foreground">Please select a project first to add tasks.</p>
+            <Button onClick={onClose} className="mt-4">Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add New Task</DialogTitle>
+          <DialogTitle>Add New Task - {selectedProject.name}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
@@ -132,6 +131,7 @@ export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo
                   <SelectItem value="story">Story</SelectItem>
                   <SelectItem value="task">Task</SelectItem>
                   <SelectItem value="sub-task">Sub-task</SelectItem>
+                  <SelectItem value="issue">Issue</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -198,24 +198,12 @@ export function AddTaskModal({ isOpen, onClose, onAddTask, defaultStatus = 'todo
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Labels</label>
-            <div className="flex gap-2 mb-2">
-              <Input
-                value={formData.newLabel}
-                onChange={(e) => setFormData({...formData, newLabel: e.target.value})}
-                placeholder="Add label"
-                onKeyPress={(e) => e.key === 'Enter' && addLabel()}
-              />
-              <Button onClick={addLabel} variant="outline">Add</Button>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {formData.labels.map(label => (
-                <Badge key={label} variant="outline" className="flex items-center gap-1">
-                  {label}
-                  <X className="w-3 h-3 cursor-pointer" onClick={() => removeLabel(label)} />
-                </Badge>
-              ))}
-            </div>
+            <label className="block text-sm font-medium mb-2">Tags</label>
+            <TagSelector
+              value={formData.labels}
+              onChange={(labels) => setFormData({...formData, labels})}
+              placeholder="Select or add tags"
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

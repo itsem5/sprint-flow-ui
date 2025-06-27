@@ -31,10 +31,11 @@ export interface Story {
 
 export interface Task {
   id: string;
+  projectId?: string;
   storyId?: string;
   name: string;
   description: string;
-  type: 'epic' | 'story' | 'task' | 'sub-task';
+  type: 'epic' | 'story' | 'task' | 'sub-task' | 'issue';
   status: 'todo' | 'in-progress' | 'review' | 'done';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   storyPoints: number;
