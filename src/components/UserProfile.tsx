@@ -11,8 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { User, Settings, LogOut, Bell } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const UserProfile = () => {
+  const navigate = useNavigate();
   const [user] = useState({
     name: "John Doe",
     email: "john.doe@example.com",
@@ -21,7 +23,7 @@ export const UserProfile = () => {
   });
 
   const handleProfileClick = () => {
-    console.log("Navigate to profile");
+    navigate("/profile");
   };
 
   const handleSettingsClick = () => {

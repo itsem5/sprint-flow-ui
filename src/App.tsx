@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import SprintBoard from "./pages/SprintBoard";
 import Backlog from "./pages/Backlog";
 import Roadmap from "./pages/Roadmap";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
                   <Route path="/sprint" element={<SprintBoard />} />
                   <Route path="/backlog" element={<Backlog />} />
                   <Route path="/roadmap" element={<Roadmap />} />
+                  <Route path="/profile" element={<Profile />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
