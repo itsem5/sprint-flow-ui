@@ -9,15 +9,17 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="p-6">
-        <div className="flex items-center gap-4 mb-8">
-          <SidebarTrigger />
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Welcome to SprintFlow
-            </h1>
-            <p className="text-xl text-muted-foreground mt-2">
-              Your comprehensive project management platform
-            </p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Welcome to SprintFlow
+              </h1>
+              <p className="text-xl text-muted-foreground mt-2">
+                Your comprehensive project management platform
+              </p>
+            </div>
           </div>
         </div>
 
