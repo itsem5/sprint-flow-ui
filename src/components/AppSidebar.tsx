@@ -1,3 +1,4 @@
+
 import { Home, BarChart3, Calendar, List, Map, Settings, Users, FolderKanban } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -61,17 +62,14 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r border-border/40">
       <SidebarHeader className="border-b border-border/40 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Home className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-lg">SprintFlow</h2>
-              <p className="text-xs text-muted-foreground">Project Management</p>
-            </div>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <Home className="w-4 h-4 text-white" />
           </div>
-          <UserProfile />
+          <div>
+            <h2 className="font-semibold text-lg">SprintFlow</h2>
+            <p className="text-xs text-muted-foreground">Project Management</p>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent className="p-4">
@@ -110,6 +108,12 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <div className="flex-1" />
+        
+        <div className="mt-auto pt-4">
+          <UserProfile />
+        </div>
       </SidebarContent>
     </Sidebar>
   );
