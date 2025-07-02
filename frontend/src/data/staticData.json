@@ -1,0 +1,463 @@
+
+{
+  "users": [
+    {
+      "id": "user-1",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "initials": "JD",
+      "avatar": null
+    },
+    {
+      "id": "user-2",
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "initials": "JS",
+      "avatar": null
+    },
+    {
+      "id": "user-3",
+      "name": "Bob Wilson",
+      "email": "bob@example.com",
+      "initials": "BW",
+      "avatar": null
+    },
+    {
+      "id": "user-4",
+      "name": "Alice Brown",
+      "email": "alice@example.com",
+      "initials": "AB",
+      "avatar": null
+    },
+    {
+      "id": "user-5",
+      "name": "Charlie Davis",
+      "email": "charlie@example.com",
+      "initials": "CD",
+      "avatar": null
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-1",
+      "name": "E-commerce Platform",
+      "description": "A comprehensive online shopping platform with modern features",
+      "createdBy": "user-1",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "successCriteria": [
+        "Increase conversion rate by 25%",
+        "Reduce page load time to under 2 seconds",
+        "Achieve 99.9% uptime",
+        "Support 10,000 concurrent users"
+      ],
+      "status": "active",
+      "members": 8,
+      "epicCount": 3,
+      "storyCount": 12,
+      "taskCount": 28
+    },
+    {
+      "id": "proj-2",
+      "name": "Customer Support Portal",
+      "description": "Internal tool for customer service representatives",
+      "createdBy": "user-2",
+      "createdAt": "2024-01-15T00:00:00Z",
+      "successCriteria": [
+        "Reduce ticket resolution time by 40%",
+        "Improve customer satisfaction score to 4.5/5",
+        "Integrate with existing CRM system"
+      ],
+      "status": "active",
+      "members": 5,
+      "epicCount": 2,
+      "storyCount": 8,
+      "taskCount": 15
+    },
+    {
+      "id": "proj-3",
+      "name": "Mobile Banking App",
+      "description": "Secure mobile banking application for retail customers",
+      "createdBy": "user-3",
+      "createdAt": "2024-02-01T00:00:00Z",
+      "successCriteria": [
+        "Pass security audit with zero critical issues",
+        "Achieve 4.8+ app store rating",
+        "Support biometric authentication"
+      ],
+      "status": "completed",
+      "members": 12,
+      "epicCount": 4,
+      "storyCount": 20,
+      "taskCount": 45
+    }
+  ],
+  "epics": [
+    {
+      "id": "epic-1",
+      "projectId": "proj-1",
+      "name": "User Management System",
+      "description": "Complete user authentication and profile management system",
+      "stories": ["story-1", "story-2", "story-3"]
+    },
+    {
+      "id": "epic-2",
+      "projectId": "proj-1",
+      "name": "Product Catalog",
+      "description": "Product listing, search, and filtering functionality",
+      "stories": ["story-4", "story-5"]
+    },
+    {
+      "id": "epic-3",
+      "projectId": "proj-1",
+      "name": "Payment Processing",
+      "description": "Secure payment gateway integration and order management",
+      "stories": ["story-6", "story-7"]
+    },
+    {
+      "id": "epic-4",
+      "projectId": "proj-2",
+      "name": "Ticket Management",
+      "description": "Core ticket creation, assignment, and tracking system",
+      "stories": ["story-8", "story-9"]
+    },
+    {
+      "id": "epic-5",
+      "projectId": "proj-2",
+      "name": "Analytics Dashboard",
+      "description": "Reporting and analytics for support metrics",
+      "stories": ["story-10"]
+    }
+  ],
+  "stories": [
+    {
+      "id": "story-1",
+      "epicId": "epic-1",
+      "name": "User Registration",
+      "description": "Allow new users to create accounts with email verification",
+      "tasks": ["task-1", "task-2", "task-3"]
+    },
+    {
+      "id": "story-2",
+      "epicId": "epic-1",
+      "name": "User Authentication",
+      "description": "Secure login system with JWT tokens and session management",
+      "tasks": ["task-4", "task-5"]
+    },
+    {
+      "id": "story-3",
+      "epicId": "epic-1",
+      "name": "User Profile Management",
+      "description": "Users can view and edit their profile information",
+      "tasks": ["task-6", "task-7"]
+    },
+    {
+      "id": "story-4",
+      "epicId": "epic-2",
+      "name": "Product Search",
+      "description": "Advanced search functionality with filters and sorting",
+      "tasks": ["task-8", "task-9", "task-10"]
+    },
+    {
+      "id": "story-5",
+      "epicId": "epic-2",
+      "name": "Product Details Page",
+      "description": "Detailed product information with images and reviews",
+      "tasks": ["task-11", "task-12"]
+    },
+    {
+      "id": "story-6",
+      "epicId": "epic-3",
+      "name": "Shopping Cart",
+      "description": "Add/remove items, calculate totals, apply discounts",
+      "tasks": ["task-13", "task-14"]
+    },
+    {
+      "id": "story-7",
+      "epicId": "epic-3",
+      "name": "Checkout Process",
+      "description": "Multi-step checkout with payment integration",
+      "tasks": ["task-15", "task-16"]
+    },
+    {
+      "id": "story-8",
+      "epicId": "epic-4",
+      "name": "Create Support Tickets",
+      "description": "Customers can create and submit support requests",
+      "tasks": ["task-17", "task-18"]
+    },
+    {
+      "id": "story-9",
+      "epicId": "epic-4",
+      "name": "Ticket Assignment",
+      "description": "Automatic and manual ticket assignment to agents",
+      "tasks": ["task-19", "task-20"]
+    },
+    {
+      "id": "story-10",
+      "epicId": "epic-5",
+      "name": "Performance Metrics",
+      "description": "Dashboard showing key support performance indicators",
+      "tasks": ["task-21", "task-22"]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-1",
+      "storyId": "story-1",
+      "name": "Design registration form",
+      "description": "Create wireframes and UI designs for the registration form",
+      "type": "task",
+      "status": "done",
+      "priority": "medium",
+      "storyPoints": 3,
+      "assigneeId": "user-4",
+      "reporterId": "user-1",
+      "likes": 5,
+      "comments": 2,
+      "createdAt": "2024-01-10T10:00:00Z",
+      "labels": ["design", "ui"],
+      "attachments": [],
+      "subTasks": ["subtask-1", "subtask-2"]
+    },
+    {
+      "id": "task-2",
+      "storyId": "story-1",
+      "name": "Implement registration API",
+      "description": "Create backend API endpoints for user registration",
+      "type": "task",
+      "status": "in-progress",
+      "priority": "high",
+      "storyPoints": 5,
+      "assigneeId": "user-1",
+      "reporterId": "user-2",
+      "likes": 3,
+      "comments": 4,
+      "createdAt": "2024-01-12T14:30:00Z",
+      "labels": ["backend", "api"],
+      "attachments": ["attachment-1"],
+      "subTasks": ["subtask-3", "subtask-4"]
+    },
+    {
+      "id": "task-3",
+      "storyId": "story-1",
+      "name": "Email verification system",
+      "description": "Implement email verification for new user accounts",
+      "type": "task",
+      "status": "todo",
+      "priority": "medium",
+      "storyPoints": 4,
+      "assigneeId": "user-3",
+      "reporterId": "user-1",
+      "likes": 2,
+      "comments": 1,
+      "createdAt": "2024-01-15T09:15:00Z",
+      "labels": ["backend", "email"],
+      "attachments": [],
+      "subTasks": ["subtask-5"]
+    },
+    {
+      "id": "task-4",
+      "storyId": "story-2",
+      "name": "Login form implementation",
+      "description": "Create responsive login form with validation",
+      "type": "task",
+      "status": "review",
+      "priority": "high",
+      "storyPoints": 3,
+      "assigneeId": "user-2",
+      "reporterId": "user-1",
+      "likes": 7,
+      "comments": 3,
+      "createdAt": "2024-01-18T11:20:00Z",
+      "labels": ["frontend", "authentication"],
+      "attachments": ["attachment-2"],
+      "subTasks": ["subtask-6", "subtask-7"]
+    },
+    {
+      "id": "task-5",
+      "storyId": "story-2",
+      "name": "JWT token management",
+      "description": "Implement JWT token generation and validation",
+      "type": "task",
+      "status": "done",
+      "priority": "urgent",
+      "storyPoints": 6,
+      "assigneeId": "user-1",
+      "reporterId": "user-2",
+      "likes": 4,
+      "comments": 6,
+      "createdAt": "2024-01-20T16:45:00Z",
+      "labels": ["security", "backend"],
+      "attachments": [],
+      "subTasks": ["subtask-8"]
+    },
+    {
+      "id": "task-6",
+      "storyId": "story-3",
+      "name": "Profile editing interface",
+      "description": "Create user-friendly profile editing form",
+      "type": "story",
+      "status": "in-progress",
+      "priority": "low",
+      "storyPoints": 4,
+      "assigneeId": "user-4",
+      "reporterId": "user-3",
+      "likes": 6,
+      "comments": 2,
+      "createdAt": "2024-01-22T13:30:00Z",
+      "labels": ["frontend", "user-profile"],
+      "attachments": ["attachment-3"],
+      "subTasks": ["subtask-9", "subtask-10"]
+    },
+    {
+      "id": "task-7",
+      "storyId": "story-3",
+      "name": "Avatar upload functionality",
+      "description": "Allow users to upload and crop profile pictures",
+      "type": "task",
+      "status": "todo",
+      "priority": "low",
+      "storyPoints": 5,
+      "assigneeId": "user-5",
+      "reporterId": "user-3",
+      "likes": 3,
+      "comments": 1,
+      "createdAt": "2024-01-25T08:00:00Z",
+      "labels": ["file-upload", "image-processing"],
+      "attachments": [],
+      "subTasks": ["subtask-11"]
+    },
+    {
+      "id": "task-8",
+      "storyId": "story-4",
+      "name": "Search algorithm implementation",
+      "description": "Implement fuzzy search with relevance scoring",
+      "type": "task",
+      "status": "todo",
+      "priority": "high",
+      "storyPoints": 8,
+      "assigneeId": "user-1",
+      "reporterId": "user-2",
+      "likes": 2,
+      "comments": 5,
+      "createdAt": "2024-01-28T10:15:00Z",
+      "labels": ["search", "algorithm"],
+      "attachments": ["attachment-4"],
+      "subTasks": ["subtask-12", "subtask-13"]
+    }
+  ],
+  "subTasks": [
+    {
+      "id": "subtask-1",
+      "taskId": "task-1",
+      "name": "Create user persona research",
+      "description": "Research target user demographics and preferences"
+    },
+    {
+      "id": "subtask-2",
+      "taskId": "task-1",
+      "name": "Design form validation states",
+      "description": "Design error states and success feedback"
+    },
+    {
+      "id": "subtask-3",
+      "taskId": "task-2",
+      "name": "Set up database schema",
+      "description": "Create user table with appropriate constraints"
+    },
+    {
+      "id": "subtask-4",
+      "taskId": "task-2",
+      "name": "Implement password hashing",
+      "description": "Use bcrypt for secure password storage"
+    },
+    {
+      "id": "subtask-5",
+      "taskId": "task-3",
+      "name": "Configure email service",
+      "description": "Set up SMTP server and email templates"
+    },
+    {
+      "id": "subtask-6",
+      "taskId": "task-4",
+      "name": "Add form validation",
+      "description": "Client-side validation for email and password"
+    },
+    {
+      "id": "subtask-7",
+      "taskId": "task-4",
+      "name": "Implement remember me functionality",
+      "description": "Add persistent login option"
+    },
+    {
+      "id": "subtask-8",
+      "taskId": "task-5",
+      "name": "Set up refresh token rotation",
+      "description": "Implement secure token refresh mechanism"
+    },
+    {
+      "id": "subtask-9",
+      "taskId": "task-6",
+      "name": "Create form components",
+      "description": "Build reusable form input components"
+    },
+    {
+      "id": "subtask-10",
+      "taskId": "task-6",
+      "name": "Add profile picture preview",
+      "description": "Show current profile picture in edit form"
+    },
+    {
+      "id": "subtask-11",
+      "taskId": "task-7",
+      "name": "Implement image cropping",
+      "description": "Add crop functionality to uploaded images"
+    },
+    {
+      "id": "subtask-12",
+      "taskId": "task-8",
+      "name": "Index product data",
+      "description": "Create search indexes for product fields"
+    },
+    {
+      "id": "subtask-13",
+      "taskId": "task-8",
+      "name": "Implement autocomplete",
+      "description": "Add search suggestions as user types"
+    }
+  ],
+  "attachments": [
+    {
+      "id": "attachment-1",
+      "name": "API_Documentation.pdf",
+      "type": "application/pdf",
+      "size": 245760,
+      "uploadedAt": "2024-01-12T15:00:00Z",
+      "uploadedBy": "user-1"
+    },
+    {
+      "id": "attachment-2",
+      "name": "login_mockup.png",
+      "type": "image/png",
+      "size": 125440,
+      "uploadedAt": "2024-01-18T12:00:00Z",
+      "uploadedBy": "user-2"
+    },
+    {
+      "id": "attachment-3",
+      "name": "profile_wireframe.jpg",
+      "type": "image/jpeg",
+      "size": 98304,
+      "uploadedAt": "2024-01-22T14:00:00Z",
+      "uploadedBy": "user-4"
+    },
+    {
+      "id": "attachment-4",
+      "name": "search_requirements.docx",
+      "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 87552,
+      "uploadedAt": "2024-01-28T11:00:00Z",
+      "uploadedBy": "user-2"
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+  -- Table: organizations
+  CREATE TABLE organizations (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    logo_url VARCHAR,
+    created_by_id INTEGER NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT fk_organizations_created_by
+      FOREIGN KEY (created_by_id)
+      REFERENCES users(id)
+  );
+
+  -- Table: users
+  CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR NOT NULL,
+    last_name VARCHAR,
+    email VARCHAR NOT NULL UNIQUE,
+    phone_number VARCHAR,
+    profile_image VARCHAR,
+    organization_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT fk_users_organization
+      FOREIGN KEY (organization_id)
+      REFERENCES organizations(id)
+  );
+
+  -- Table: projects
+  CREATE TABLE projects (
+    id VARCHAR PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    description TEXT,
+    created_by VARCHAR NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    status VARCHAR DEFAULT 'active',
+    CONSTRAINT fk_projects_created_by
+      FOREIGN KEY (created_by)
+      REFERENCES users(id)
+  );
+  CREATE TABLE project_success_criteria (
+    id SERIAL PRIMARY KEY,
+    project_id VARCHAR NOT NULL,
+    description TEXT,
+    CONSTRAINT fk_success_criteria_project
+      FOREIGN KEY (project_id) REFERENCES projects(id)
+  );
+
+  CREATE TABLE project_members (
+    id SERIAL PRIMARY KEY,
+    project_id VARCHAR NOT NULL,
+    user_id VARCHAR NOT NULL,
+    role VARCHAR,
+    joined_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT fk_members_project
+      FOREIGN KEY (project_id) REFERENCES projects(id),
+    CONSTRAINT fk_members_user
+      FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+
+  CREATE TABLE epics (
+    id VARCHAR PRIMARY KEY,
+    project_id VARCHAR NOT NULL,
+    name VARCHAR NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT fk_epics_project
+      FOREIGN KEY (project_id) REFERENCES projects(id)
+  );
+  CREATE TABLE sprints (
+    id VARCHAR PRIMARY KEY,
+    project_id VARCHAR NOT NULL,
+    name VARCHAR NOT NULL,
+    goal TEXT,
+    start_date DATE,
+    end_date DATE,
+    status VARCHAR DEFAULT 'upcoming',
+    created_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT fk_sprints_project
+      FOREIGN KEY (project_id) REFERENCES projects(id)
+  );
+
+
+  CREATE TABLE stories (
+    id VARCHAR PRIMARY KEY,
+    epic_id VARCHAR NOT NULL,
+    name VARCHAR NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT fk_stories_epic
+      FOREIGN KEY (epic_id) REFERENCES epics(id)
+  );
+
+  CREATE TABLE tasks (
+    id VARCHAR PRIMARY KEY,
+    story_id VARCHAR NOT NULL,
+    parent_task_id VARCHAR,
+    name VARCHAR NOT NULL,
+    description TEXT,
+    type VARCHAR DEFAULT 'task',
+    status VARCHAR DEFAULT 'todo',
+    priority VARCHAR DEFAULT 'medium',
+    story_points INT,
+    assignee_id VARCHAR,
+    reporter_id VARCHAR,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP,
+    CONSTRAINT fk_tasks_story
+      FOREIGN KEY (story_id) REFERENCES stories(id),
+    CONSTRAINT fk_tasks_parent
+      FOREIGN KEY (parent_task_id) REFERENCES tasks(id),
+    CONSTRAINT fk_tasks_assignee
+      FOREIGN KEY (assignee_id) REFERENCES users(id),
+    CONSTRAINT fk_tasks_reporter
+      FOREIGN KEY (reporter_id) REFERENCES users(id)
+  );
+  CREATE TABLE task_labels (
+    id SERIAL PRIMARY KEY,
+    task_id VARCHAR NOT NULL,
+    label VARCHAR NOT NULL,
+    CONSTRAINT fk_task_labels_task
+      FOREIGN KEY (task_id) REFERENCES tasks(id)
+  );
+
+  CREATE TABLE task_attachments (
+    id SERIAL PRIMARY KEY,
+    task_id VARCHAR NOT NULL,
+    file_url VARCHAR NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT fk_task_attachments_task
+      FOREIGN KEY (task_id) REFERENCES tasks(id)
+  );
+
+
