@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -15,15 +15,10 @@ import { useNavigate } from "react-router-dom";
 
 export const UserProfile = () => {
   const navigate = useNavigate();
-  const [user] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    initials: "JD",
-    avatar: null
-  });
+  const { user, logout } = useAuth();
 
   const handleProfileClick = () => {
-    navigate("/profile");
+    navigate("/app/profile");
   };
 
   const handleSettingsClick = () => {
@@ -31,7 +26,8 @@ export const UserProfile = () => {
   };
 
   const handleLogout = () => {
-    console.log("Logout user");
+    logout();
+    navigate("/login");
   };
 
   return (
@@ -45,12 +41,12 @@ export const UserProfile = () => {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center gap-2 px-2">
             <Avatar className="w-8 h-8">
-              <AvatarImage src={user.avatar || ""} alt={user.name} />
-              <AvatarFallback>{user.initials}</AvatarFallback>
+              <AvatarImage src={user?.profileImage || ""} alt={user?.firstName} />
+              <AvatarFallback>{user?.firstName?.[0]}{user?.lastName?.[0]}</AvatarFallback>
             </Avatar>
             <div className="text-left hidden md:block">
-              <p className="text-sm font-medium">{user.name}</p>
-              <p className="text-xs text-muted-foreground">{user.email}</p>
+              <p className="text-sm font-medium">{user?.firstName} {user?.lastName}</p>
+              <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
           </Button>
         </DropdownMenuTrigger>

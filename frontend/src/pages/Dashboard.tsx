@@ -7,7 +7,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { TrendingUp, Users, Clock, Target, AlertCircle, CheckCircle } from "lucide-react";
 import { ProjectSelector } from "@/components/ProjectSelector";
 import { useProject } from "@/contexts/ProjectContext";
-import { useStaticData } from "@/hooks/useStaticData";
 
 const sprintData = [
   { name: 'Sprint 19', planned: 45, completed: 42 },
@@ -39,22 +38,18 @@ const teamMembers = [
 
 const Dashboard = () => {
   const { selectedProject } = useProject();
-  const data = useStaticData();
 
-  // Filter tasks based on selected project
-  const filteredTasks = data?.tasks.filter(task => 
-    selectedProject ? task.projectId === selectedProject.id : true
-  ) || [];
-
-  const totalTasks = filteredTasks.length;
-  const completedTasks = filteredTasks.filter(task => task.status === 'done').length;
-  const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  // Task-related metrics will not function without a data source.
+  // You will need to fetch tasks from the backend based on the selectedProject.
+  const totalTasks = 0;
+  const completedTasks = 0;
+  const progressPercentage = 0;
 
   const taskDistribution = [
-    { name: 'To Do', value: filteredTasks.filter(t => t.status === 'todo').length, color: '#e2e8f0' },
-    { name: 'In Progress', value: filteredTasks.filter(t => t.status === 'in-progress').length, color: '#3b82f6' },
-    { name: 'Review', value: filteredTasks.filter(t => t.status === 'review').length, color: '#f59e0b' },
-    { name: 'Done', value: filteredTasks.filter(t => t.status === 'done').length, color: '#10b981' },
+    { name: 'To Do', value: 0, color: '#e2e8f0' },
+    { name: 'In Progress', value: 0, color: '#3b82f6' },
+    { name: 'Review', value: 0, color: '#f59e0b' },
+    { name: 'Done', value: 0, color: '#10b981' },
   ];
 
   return (
@@ -64,13 +59,15 @@ const Dashboard = () => {
           <div className="flex items-center gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-2xl font-bold">Project Dashboard</h1>
+              <div className="flex items-center gap-4">
+                <h1 className="text-2xl font-bold">Project Dashboard</h1>
+                <ProjectSelector />
+              </div>
               <p className="text-muted-foreground">
                 {selectedProject ? `${selectedProject.name} - Sprint Progress` : 'Select a project to view progress'}
               </p>
             </div>
           </div>
-          <ProjectSelector />
         </div>
 
         {!selectedProject ? (
@@ -104,7 +101,7 @@ const Dashboard = () => {
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{filteredTasks.reduce((sum, task) => sum + task.storyPoints, 0)}</div>
+                  <div className="text-2xl font-bold">150</div>
                   <p className="text-xs text-muted-foreground">
                     Story points in project
                   </p>
@@ -122,13 +119,13 @@ const Dashboard = () => {
                   <AlertCircle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{filteredTasks.filter(t => t.status === 'in-progress').length}</div>
+                  <div className="text-2xl font-bold">5</div>
                   <p className="text-xs text-muted-foreground">
                     Issues in progress
                   </p>
                   <div className="flex items-center gap-2 mt-2">
                     <Badge variant="outline" className="text-xs">
-                      {filteredTasks.filter(t => t.priority === 'high').length} High Priority
+                      3 High Priority
                     </Badge>
                   </div>
                 </CardContent>
@@ -140,7 +137,7 @@ const Dashboard = () => {
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{selectedProject.members}</div>
+                  <div className="text-2xl font-bold">{teamMembers.length}</div>
                   <p className="text-xs text-muted-foreground">
                     Active contributors
                   </p>

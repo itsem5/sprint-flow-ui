@@ -11,6 +11,11 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @Post('login')
+  login(@Body() { email }: { email: string }) {
+    return this.usersService.findByEmail(email);
+  }
+
   @Get()
   findAll() {
     return this.usersService.findAll();

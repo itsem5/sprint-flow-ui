@@ -1,89 +1,52 @@
 
+import { Link, useNavigate } from "react-router-dom";
+import { useGetProjects, useDeleteProject } from "@/api/projects/project";
+import { Project } from "@/types/project";
 import { useState } from "react";
+import { toast } from "sonner";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CalendarDays, Users, Activity, Plus, Search, Filter, X } from "lucide-react";
-import { Project } from "@/types/project";
-
-const mockProjects: Project[] = [
-  {
-    id: 'proj-1',
-    name: 'E-commerce Platform',
-    description: 'A comprehensive online shopping platform with advanced features',
-    createdBy: 'John Doe',
-    createdAt: '2024-01-15',
-    successCriteria: ['Complete user authentication', 'Payment gateway integration', 'Mobile responsive design'],
-    status: 'active',
-    members: 8,
-    epicCount: 3,
-    storyCount: 12,
-    taskCount: 45,
-    ticketCounter: { story: 12, task: 45, 'sub-task': 23, bug: 8, issue: 5 }
-  },
-  {
-    id: 'proj-2',
-    name: 'Mobile Banking App',
-    description: 'Secure mobile banking application with biometric authentication',
-    createdBy: 'Jane Smith',
-    createdAt: '2024-02-01',
-    successCriteria: ['Implement biometric login', 'Real-time transaction alerts', 'Offline mode support'],
-    status: 'active',
-    members: 6,
-    epicCount: 2,
-    storyCount: 8,
-    taskCount: 32,
-    ticketCounter: { story: 8, task: 32, 'sub-task': 15, bug: 4, issue: 2 }
-  },
-  {
-    id: 'proj-3',
-    name: 'Healthcare Management',
-    description: 'Patient management system for healthcare providers',
-    createdBy: 'Dr. Wilson',
-    createdAt: '2023-11-20',
-    successCriteria: ['HIPAA compliance', 'Electronic health records', 'Appointment scheduling'],
-    status: 'completed',
-    members: 5,
-    epicCount: 4,
-    storyCount: 15,
-    taskCount: 67,
-    ticketCounter: { story: 15, task: 67, 'sub-task': 34, bug: 12, issue: 7 }
-  }
-];
+import { CalendarDays, Users, Activity, Plus, Search, X } from "lucide-react";
+import DeleteProjectModal from "@/components/DeleteProjectModal";
 
 const Projects = () => {
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
+  const navigate = useNavigate();
+  const { data: projects, isLoading, isError } = useGetProjects();
+  const deleteProjectMutation = useDeleteProject();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
 
-  const handleCreateProject = () => {
-    const newProject: Project = {
-      id: `proj-${Date.now()}`,
-      name: 'New Project',
-      description: 'Project description',
-      createdBy: 'Current User',
-      createdAt: new Date().toISOString().split('T')[0],
-      successCriteria: [],
-      status: 'active',
-      members: 1,
-      epicCount: 0,
-      storyCount: 0,
-      taskCount: 0,
-      ticketCounter: { story: 0, task: 0, 'sub-task': 0, bug: 0, issue: 0 }
-    };
-    
-    setProjects([...projects, newProject]);
-    setIsCreateProjectOpen(false);
+  const handleDeleteClick = (project: { id: string; name: string }) => {
+    setProjectToDelete(project);
+    setIsDeleteModalOpen(true);
   };
 
-  const filteredProjects = projects.filter(project => {
+  const handleConfirmDelete = () => {
+    if (projectToDelete) {
+      deleteProjectMutation.mutate(projectToDelete.id, {
+        onSuccess: () => {
+          toast.success("Project deleted successfully!");
+          setIsDeleteModalOpen(false);
+          setProjectToDelete(null);
+        },
+        onError: (error) => {
+          toast.error(error.message || "An error occurred");
+          setIsDeleteModalOpen(false);
+          setProjectToDelete(null);
+        },
+      });
+    }
+  };
+
+  const filteredProjects = (projects || []).filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchQuery.toLowerCase());
+      (project.description && project.description.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesStatus = selectedStatus === 'all' || project.status === selectedStatus;
 
@@ -96,6 +59,14 @@ const Projects = () => {
   };
 
   const hasActiveFilters = searchQuery || selectedStatus !== 'all';
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading projects...</div>;
+  }
+
+  if (isError) {
+    return <div className="min-h-screen flex items-center justify-center text-red-500">Error loading projects.</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -134,7 +105,7 @@ const Projects = () => {
               </Button>
             )}
 
-            <Button onClick={() => setIsCreateProjectOpen(true)}>
+            <Button onClick={() => navigate("/projects/create")}>
               <Plus className="w-4 h-4 mr-2" />
               Create Project
             </Button>
@@ -142,57 +113,62 @@ const Projects = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map(project => (
-            <Card key={project.id}>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold">{project.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-sm text-muted-foreground">{project.description}</p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CalendarDays className="w-4 h-4" />
-                  <span>Created: {project.createdAt}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Users className="w-4 h-4" />
-                  <span>Members: {project.members}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Activity className="w-4 h-4" />
-                  <span>Progress:</span>
-                  <Progress value={(project.taskCount / 100) * 100} className="w-32" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
+          {filteredProjects.length === 0 ? (
+            <p>No projects found.</p>
+          ) : (
+            filteredProjects.map(project => (
+              <Card key={project.id}>
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold">{project.name}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <p className="text-sm text-muted-foreground">{project.description}</p>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CalendarDays className="w-4 h-4" />
+                    <span>Created: {new Date(project.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="w-4 h-4" />
+                    <span>Members: {project.members ? project.members.length : 0}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Activity className="w-4 h-4" />
+                    <span>Status:</span>
                     <Badge variant="secondary">
                       {project.status}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src="https://github.com/shadcn.png" alt="Avatar" />
-                      <AvatarFallback>CN</AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs text-muted-foreground">Created by {project.createdBy}</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src="https://github.com/shadcn.png" alt="Avatar" />
+                        <AvatarFallback>CN</AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs text-muted-foreground">Created by {project.createdById}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/projects/${project.id}/edit`)}>
+                        Edit
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteClick({ id: project.id, name: project.name })}>
+                        Delete
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
       </div>
 
-      {isCreateProjectOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-md shadow-lg w-96">
-            <h2 className="text-lg font-semibold mb-4">Create New Project</h2>
-            <p>Are you sure you want to create a new project?</p>
-            <div className="flex justify-end gap-4 mt-4">
-              <Button variant="ghost" onClick={() => setIsCreateProjectOpen(false)}>Cancel</Button>
-              <Button onClick={handleCreateProject}>Create</Button>
-            </div>
-          </div>
-        </div>
+      {projectToDelete && (
+        <DeleteProjectModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleConfirmDelete}
+          projectName={projectToDelete.name}
+        />
       )}
     </div>
   );

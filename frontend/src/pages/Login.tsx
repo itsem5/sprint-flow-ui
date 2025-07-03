@@ -7,9 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { Zap, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { useLogin } from "@/api/auth/user";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const loginMutation = useLogin();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -19,13 +23,25 @@ const Login = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Mock login logic - replace with actual authentication
-    if (formData.email && formData.password) {
-      toast.success("Login successful!");
-      navigate("/dashboard");
-    } else {
+    if (!formData.email || !formData.password) {
       toast.error("Please fill in all fields");
+      return;
     }
+
+    loginMutation.mutate({ email: formData.email }, {
+      onSuccess: (data) => {
+        if (data.data) {
+          toast.success("Login successful!");
+          login(data.data);
+          navigate("/dashboard");
+        } else {
+          toast.error("Invalid credentials");
+        }
+      },
+      onError: (error) => {
+        toast.error(error.message || "An error occurred");
+      },
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

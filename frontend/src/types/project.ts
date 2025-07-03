@@ -2,22 +2,12 @@
 export interface Project {
   id: string;
   name: string;
-  description: string;
-  createdBy: string;
+  description?: string;
+  createdById: string;
   createdAt: string;
-  successCriteria: string[];
-  status: 'active' | 'inactive' | 'completed';
-  members: number;
-  epicCount: number;
-  storyCount: number;
-  taskCount: number;
-  ticketCounter: {
-    story: number;
-    task: number;
-    'sub-task': number;
-    bug: number;
-    issue: number;
-  };
+  status?: 'active' | 'inactive' | 'completed';
+  members?: string[];
+  successCriteria?: string[];
 }
 
 export interface Epic {

@@ -7,9 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { Zap, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { useSignup } from "@/api/auth/user";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const signupMutation = useSignup();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -39,9 +43,16 @@ const Signup = () => {
       return;
     }
 
-    // Mock signup logic - replace with actual authentication
-    toast.success("Account created successfully!");
-    navigate("/dashboard");
+    signupMutation.mutate(formData, {
+      onSuccess: (data) => {
+        toast.success("Account created successfully!");
+        login(data.data);
+        navigate("/create-organization");
+      },
+      onError: (error) => {
+        toast.error(error.message || "An error occurred");
+      },
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,20 +1,26 @@
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { useGetProjects } from "@/api/projects/project";
 import { useProject } from "@/contexts/ProjectContext";
-import { useStaticData } from "@/hooks/useStaticData";
-import { FolderOpen } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import * as SelectPrimitive from "@radix-ui/react-select";
+import { Badge, FolderOpen } from "lucide-react";
 
 export function ProjectSelector() {
   const { selectedProject, setSelectedProject } = useProject();
-  const data = useStaticData();
-
-  const projects = data?.projects || [];
+  const { data: projects, isLoading, isError } = useGetProjects();
 
   const handleProjectChange = (projectId: string) => {
-    const project = projects.find(p => p.id === projectId);
+    const project = projects?.find(p => p.id === projectId);
     setSelectedProject(project || null);
   };
+
+  if (isLoading) {
+    return <div className="flex items-center gap-3 min-w-64 text-muted-foreground">Loading projects...</div>;
+  }
+
+  if (isError) {
+    return <div className="flex items-center gap-3 min-w-64 text-red-500">Error loading projects.</div>;
+  }
 
   return (
     <div className="flex items-center gap-3 min-w-64">
@@ -27,21 +33,18 @@ export function ProjectSelector() {
           <SelectValue placeholder="Select a project" />
         </SelectTrigger>
         <SelectContent>
-          {projects.map((project) => (
-            <SelectItem key={project.id} value={project.id}>
-              <div className="flex items-center justify-between w-full">
-                <span>{project.name}</span>
-                <Badge 
-                  variant="secondary" 
-                  className={`ml-2 ${
-                    project.status === 'active' ? 'bg-green-100 text-green-800' :
-                    project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {project.status}
-                </Badge>
-              </div>
+          {projects?.map((project) => (
+            <SelectItem key={project.id} value={project.id} className="flex items-center justify-between w-full">
+              <SelectPrimitive.ItemText>{project.name}</SelectPrimitive.ItemText>
+              <span 
+                className={`ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  project.status === 'active' ? 'bg-green-100 text-green-800' :
+                  project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}
+              >
+                {project.status}
+              </span>
             </SelectItem>
           ))}
         </SelectContent>
