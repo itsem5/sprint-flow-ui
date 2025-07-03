@@ -14,6 +14,8 @@ import { Plus, Filter, Search, Settings, X, Calendar, ArrowRight } from "lucide-
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { KanbanColumn } from "@/types/project";
+import { ProjectSelector } from "@/components/ProjectSelector";
+import { useProject } from "@/contexts/ProjectContext";
 import { useStaticData, TaskWithDetails } from "@/hooks/useStaticData";
 
 const defaultColumns: KanbanColumn[] = [
@@ -46,6 +48,7 @@ const mockSprints: Sprint[] = [
 ];
 
 const SprintBoard = () => {
+  const { selectedProject } = useProject();
   const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateStoryModalOpen, setIsCreateStoryModalOpen] = useState(false);
@@ -61,8 +64,8 @@ const SprintBoard = () => {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [columns, setColumns] = useState<KanbanColumn[]>(defaultColumns);
   const [tasks, setTasks] = useState<TaskWithDetails[]>([]);
-  const [sprints, setSprints] = useState<Sprint[]>(mockSprints);
-  const [currentSprint, setCurrentSprint] = useState<Sprint | null>(mockSprints[0]);
+  const [sprints, setSprints] = useState<Sprint[]>(selectedProject ? mockSprints : []);
+  const [currentSprint, setCurrentSprint] = useState<Sprint | null>(selectedProject ? mockSprints[0] : null);
   const dragCounter = useRef(0);
   const data = useStaticData();
 
@@ -75,26 +78,24 @@ const SprintBoard = () => {
 
   // Mock breadcrumb data - in real app this would come from route params/context
   const breadcrumbItems: BreadcrumbItem[] = [
-    { title: 'E-commerce Platform', url: '/project/1' },
-    { title: 'User Management Epic', url: '/project/1/epic/1' },
-    { title: 'Authentication Story', url: '/project/1/story/1' },
+    ...(selectedProject ? [{ title: selectedProject.name, url: `/project/${selectedProject.id}` }] : []),
     { title: 'Sprint Board', isActive: true }
   ];
 
   // Get unique assignees for filter
   const uniqueAssignees = Array.from(new Set(tasks.map(task => task.assignee.name)));
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = selectedProject ? tasks.filter(task => {
     const matchesSearch = task.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.assignee.name.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesAssignee = selectedAssignee === 'all' || task.assignee.name === selectedAssignee;
     const matchesPriority = selectedPriority === 'all' || task.priority === selectedPriority;
     const matchesType = selectedType === 'all' || task.type === selectedType;
 
     return matchesSearch && matchesAssignee && matchesPriority && matchesType;
-  });
+  }) : [];
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -125,7 +126,7 @@ const SprintBoard = () => {
   };
 
   const handleUpdateSprint = (sprintId: string, updates: Partial<Sprint>) => {
-    setSprints(sprints.map(sprint => 
+    setSprints(sprints.map(sprint =>
       sprint.id === sprintId ? { ...sprint, ...updates } : sprint
     ));
   };
@@ -222,191 +223,146 @@ const SprintBoard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6">
-        <TaskBreadcrumb items={breadcrumbItems} />
-        
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 <h1 className="text-2xl font-bold">Sprint Board</h1>
-                {currentSprint && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    {currentSprint.name}
-                  </Badge>
-                )}
+                <ProjectSelector />
               </div>
               <p className="text-muted-foreground">
-                {currentSprint ? `${currentSprint.description} • Development Team` : 'No active sprint'}
+                {selectedProject ? `${selectedProject.name} - Sprint Progress` : 'No project selected'}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search tasks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64"
-              />
+        </div>
+        {!selectedProject ? (
+          <Card className="text-center py-12">
+            <CardContent>
+              <h3 className="text-lg font-medium mb-2">No Project Selected</h3>
+              <p className="text-muted-foreground">Please select a project from the dropdown above to view the sprint board.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <div>
+              <TaskBreadcrumb items={breadcrumbItems} />
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Search className="w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search tasks..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-64"
+                  />
+                </div>
+
+                <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Assignee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Assignees</SelectItem>
+                    {uniqueAssignees.map(assignee => (
+                      <SelectItem key={assignee} value={assignee}>{assignee}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priority</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedType} onValueChange={setSelectedType}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="epic">Epic</SelectItem>
+                    <SelectItem value="story">Story</SelectItem>
+                    <SelectItem value="task">Task</SelectItem>
+                    <SelectItem value="sub-task">Sub-task</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {hasActiveFilters && (
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    <X className="w-4 h-4 mr-2" />
+                    Clear
+                  </Button>
+                )}
+
+                <Button variant="outline" size="sm" onClick={() => setIsSprintManagerOpen(true)}>
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Sprints
+                </Button>
+
+                <Button variant="outline" size="sm" onClick={() => setIsColumnCustomizerOpen(true)}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Customize
+                </Button>
+
+                <Button size="sm" onClick={() => setIsCreateStoryModalOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Story
+                </Button>
+              </div>
             </div>
-            
-            <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Assignee" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Assignees</SelectItem>
-                {uniqueAssignees.map(assignee => (
-                  <SelectItem key={assignee} value={assignee}>{assignee}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
 
-            <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priority</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-              </SelectContent>
-            </Select>
+            <TaskModal
+              task={selectedTask}
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onUpdate={handleTaskUpdate}
+            />
 
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="epic">Epic</SelectItem>
-                <SelectItem value="story">Story</SelectItem>
-                <SelectItem value="task">Task</SelectItem>
-                <SelectItem value="sub-task">Sub-task</SelectItem>
-              </SelectContent>
-            </Select>
+            <SprintManager
+              isOpen={isSprintManagerOpen}
+              onClose={() => setIsSprintManagerOpen(false)}
+              sprints={selectedProject ? sprints : []}
+              onCreateSprint={handleCreateSprint}
+              onUpdateSprint={handleUpdateSprint}
+              currentSprint={selectedProject ? currentSprint : null}
+              onSprintChange={handleSprintChange}
+            />
 
-            {hasActiveFilters && (
-              <Button variant="outline" size="sm" onClick={clearFilters}>
-                <X className="w-4 h-4 mr-2" />
-                Clear
-              </Button>
-            )}
+            <TaskMoveModal
+              isOpen={isTaskMoveModalOpen}
+              onClose={() => setIsTaskMoveModalOpen(false)}
+              task={taskToMove}
+              sprints={selectedProject ? sprints : []}
+              currentSprint={selectedProject ? currentSprint : null}
+              onMoveTask={handleMoveTask}
+            />
 
-            <Button variant="outline" size="sm" onClick={() => setIsSprintManagerOpen(true)}>
-              <Calendar className="w-4 h-4 mr-2" />
-              Sprints
-            </Button>
+            <CreateStoryModal
+              isOpen={isCreateStoryModalOpen}
+              onClose={() => setIsCreateStoryModalOpen(false)}
+              onCreateStory={handleCreateStory}
+              projectId={selectedProject?.id}
+            />
 
-            <Button variant="outline" size="sm" onClick={() => setIsColumnCustomizerOpen(true)}>
-              <Settings className="w-4 h-4 mr-2" />
-              Customize
-            </Button>
-            
-            <Button size="sm" onClick={() => setIsCreateStoryModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Story
-            </Button>
-          </div>
-        </div>
-
-        <div className={`grid gap-6`} style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}>
-          {columns.sort((a, b) => a.order - b.order).map((column) => {
-            const columnTasks = getTasksByColumn(column.id);
-            const isDragOver = dragOverColumn === column.id;
-
-            return (
-              <Card
-                key={column.id}
-                className={`min-h-[600px] transition-all duration-200 ${
-                  isDragOver ? 'ring-2 ring-blue-400 shadow-lg' : ''
-                }`}
-                onDragOver={handleDragOver}
-                onDragEnter={(e) => handleDragEnter(e, column.id)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, column.id)}
-              >
-                <CardHeader className={`pb-3 ${column.color} rounded-t-lg`}>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{column.title}</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="bg-white/80">
-                        {columnTasks.length}
-                      </Badge>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 space-y-3">
-                  {columnTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, task)}
-                      className="transition-transform duration-200 hover:scale-105"
-                    >
-                      <TaskCard
-                        task={convertTaskForCard(task)}
-                        onClick={() => handleTaskClick(task)}
-                        isDragging={draggedTask?.id === task.id}
-                      />
-                    </div>
-                  ))}
-                  {columnTasks.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p className="text-sm">No tasks in {column.title.toLowerCase()}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+            <ColumnCustomizer
+              isOpen={isColumnCustomizerOpen}
+              onClose={() => setIsColumnCustomizerOpen(false)}
+              columns={columns}
+              onUpdateColumns={setColumns}
+            />
+          </>
+        )}
       </div>
-
-      <TaskModal
-        task={selectedTask}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onUpdate={handleTaskUpdate}
-      />
-
-      <SprintManager
-        isOpen={isSprintManagerOpen}
-        onClose={() => setIsSprintManagerOpen(false)}
-        sprints={sprints}
-        onCreateSprint={handleCreateSprint}
-        onUpdateSprint={handleUpdateSprint}
-        currentSprint={currentSprint}
-        onSprintChange={handleSprintChange}
-      />
-
-      <TaskMoveModal
-        isOpen={isTaskMoveModalOpen}
-        onClose={() => setIsTaskMoveModalOpen(false)}
-        task={taskToMove}
-        sprints={sprints}
-        currentSprint={currentSprint}
-        onMoveTask={handleMoveTask}
-      />
-
-      <CreateStoryModal
-        isOpen={isCreateStoryModalOpen}
-        onClose={() => setIsCreateStoryModalOpen(false)}
-        onCreateStory={handleCreateStory}
-        projectId="proj-1"
-      />
-
-      <ColumnCustomizer
-        isOpen={isColumnCustomizerOpen}
-        onClose={() => setIsColumnCustomizerOpen(false)}
-        columns={columns}
-        onUpdateColumns={setColumns}
-      />
     </div>
   );
 };
