@@ -69,3 +69,35 @@ export const useUpdateOrganization = () => {
     },
   });
 };
+
+export const useSearchOrganizations = (name: string) => {
+  return useQuery<Organization[]>({
+    queryKey: ['organizations', name],
+    queryFn: async () => {
+      if (!name) {
+        return [];
+      }
+      const response = await axios.get(`${API_BASE_URL}/organizations/search/${name}`);
+      return response.data;
+    },
+    enabled: !!name,
+  });
+};
+
+export const useAssignUserToOrganization = () => {
+  const queryClient = useQueryClient();
+  const { user, login } = useAuth();
+  return useMutation({
+    mutationFn: async (organizationId: number) => {
+      if (!user || !user.id) {
+        throw new Error("User not authenticated or user ID not available.");
+      }
+      const response = await axios.patch(`${API_BASE_URL}/organizations/${organizationId}/assign-user/${user.id}`);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      login({ ...user, organization: data });
+    },
+  });
+};

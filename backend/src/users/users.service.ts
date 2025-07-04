@@ -44,4 +44,16 @@ export class UsersService {
       .orWhere('LOWER(user.email) LIKE LOWER(:query)', { query: `%${query}%` })
       .getMany();
   }
+
+  async searchUsersInOrganization(organizationId: number, userName: string): Promise<User[]> {
+    const queryBuilder = this.usersRepository.createQueryBuilder('user')
+      .where('user.organizationId = :organizationId', { organizationId });
+
+    if (userName) {
+      const escapedUserName = userName.replace(/([%_])/g, '\\$1');
+      queryBuilder.andWhere('(LOWER(user.firstName) LIKE LOWER(:userName) OR LOWER(user.lastName) LIKE LOWER(:userName))', { userName: `%${escapedUserName}%` });
+    }
+
+    return queryBuilder.getMany();
+  }
 }

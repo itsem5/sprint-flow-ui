@@ -31,6 +31,11 @@ export class UsersController {
     return this.usersService.searchUsers(query);
   }
 
+  @Get('search/:organizationId/:userName')
+  searchUsersInOrganization(@Param('organizationId') organizationId: string, @Param('userName') userName: string) {
+    return this.usersService.searchUsersInOrganization(+organizationId, userName);
+  }
+
   @Put(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);

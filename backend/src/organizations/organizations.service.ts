@@ -41,4 +41,11 @@ export class OrganizationsService {
     });
     return this.organizationsRepository.findOneBy({ id });
   }
+
+  async searchByName(name: string): Promise<Organization[]> {
+    const escapedName = name.replace(/([%_])/g, '\\$1');
+    return this.organizationsRepository.createQueryBuilder('organization')
+      .where('LOWER(organization.name) LIKE LOWER(:name)', { name: `%${escapedName}%` })
+      .getMany();
+  }
 }
