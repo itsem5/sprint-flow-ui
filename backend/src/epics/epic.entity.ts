@@ -45,7 +45,11 @@ export class Epic {
   priority: EpicPriority;
 
   @Column({ name: 'created_by' })
-  createdBy: string;
+  createdById: number;
+
+  @ManyToOne(() => User, user => user.createdEpics)
+  @JoinColumn({ name: 'created_by' })
+  createdBy: User;
 
   @Column({ name: 'assigned_to', nullable: true })
   assignedTo: string;

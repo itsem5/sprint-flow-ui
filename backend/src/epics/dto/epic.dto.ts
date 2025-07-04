@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsArray, IsDateString, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsEnum, IsArray, IsDateString } from 'class-validator';
 import { EpicStatus, EpicPriority } from '../epic.entity';
 
 export class CreateEpicDto {
@@ -20,8 +20,8 @@ export class CreateEpicDto {
   @IsEnum(EpicPriority)
   priority?: EpicPriority;
 
-  @IsString()
-  createdBy: string;
+  @IsNumber()
+  createdById: number;
 
   @IsOptional()
   @IsString()

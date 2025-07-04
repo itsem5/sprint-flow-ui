@@ -22,7 +22,7 @@ interface CreateEpicModalProps {
     tags?: string[];
     startDate?: string;
     dueDate?: string;
-    createdBy?: number; 
+    createdById?: number; 
   }) => void;
   projectId?: string;
 }
@@ -61,7 +61,7 @@ export const CreateEpicModal: React.FC<CreateEpicModalProps> = ({ isOpen, onClos
       tags: tags ? tags.split(',').map(tag => tag.trim()) : undefined,
       startDate: startDate || undefined,
       dueDate: dueDate || undefined,
-      createdBy: user?.id, // Pass the logged-in user's ID
+      createdById: user?.id, // Pass the logged-in user's ID
     });
     setName('');
     setDescription('');

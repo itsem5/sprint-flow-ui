@@ -9,10 +9,7 @@ export class EpicsController {
 
   @Post()
   create(@Body() createEpicDto: CreateEpicDto) {
-    // For now, we'll use a dummy user ID for createdBy
-    const createdBy = 'user-1'; // Replace with actual user ID from authentication context
-    const id = uuidv4();
-    return this.epicsService.create({ ...createEpicDto, createdBy });
+    return this.epicsService.create(createEpicDto);
   }
 
   @Get()

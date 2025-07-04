@@ -28,7 +28,7 @@ const Epics = () => {
     tags?: string[];
     startDate?: string;
     dueDate?: string;
-    createdBy?: number; // Assuming createdBy is a string representing user ID
+    createdById?: number; // Assuming createdById is a string representing user ID
   }) => {
     if (!selectedProject) {
       toast({
@@ -39,7 +39,7 @@ const Epics = () => {
       return;
     }
     try {
-      await createEpic({ ...epicData, projectId: selectedProject.id, createdBy: epicData.createdBy });
+      await createEpic({ ...epicData, projectId: selectedProject.id, createdById: epicData.createdById });
       toast({
         title: 'Success',
         description: 'Epic created successfully.',

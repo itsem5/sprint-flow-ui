@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Epic } from './epic.entity';
 import { CreateEpicDto, UpdateEpicDto } from './dto/epic.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class EpicsService {
@@ -12,7 +13,11 @@ export class EpicsService {
   ) {}
 
   create(createEpicDto: CreateEpicDto): Promise<Epic> {
-    const epic = this.epicsRepository.create(createEpicDto);
+    const epic = this.epicsRepository.create({
+      id: uuidv4(), // Generate a UUID for the ID
+      ...createEpicDto,
+      createdById: createEpicDto.createdById,
+    });
     return this.epicsRepository.save(epic);
   }
 

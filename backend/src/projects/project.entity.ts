@@ -17,7 +17,7 @@ export class Project {
   description: string;
 
   @Column({ name: 'created_by' })
-  createdById: string;
+  createdById: number;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
