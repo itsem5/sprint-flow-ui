@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColum
 import { Organization } from '../organizations/organization.entity';
 import { Project } from '../projects/project.entity';
 import { Task } from '../tasks/task.entity';
+import { Epic } from '../epics/epic.entity';
 
 @Entity('users')
 export class User {
@@ -44,4 +45,10 @@ export class User {
 
   @OneToMany(() => Task, task => task.reporter)
   reportedTasks: Task[];
+
+  @OneToMany(() => Epic, epic => epic.creator)
+  createdEpics: Epic[];
+
+  @OneToMany(() => Epic, epic => epic.assignee)
+  assignedEpics: Epic[];
 }

@@ -48,7 +48,7 @@ const mockSprints: Sprint[] = [
 ];
 
 const SprintBoard = () => {
-  const { selectedProject } = useProject();
+  const { selectedProject, setSelectedProject } = useProject();
   const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateStoryModalOpen, setIsCreateStoryModalOpen] = useState(false);
@@ -74,7 +74,10 @@ const SprintBoard = () => {
     if (data?.tasks) {
       setTasks(data.tasks);
     }
-  }, [data]);
+    if (!selectedProject && data?.projects && data.projects.length > 0) {
+      setSelectedProject(data.projects[0]);
+    }
+  }, [data, selectedProject, setSelectedProject]);
 
   // Mock breadcrumb data - in real app this would come from route params/context
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -199,6 +202,7 @@ const SprintBoard = () => {
   // Convert TaskWithDetails to the format expected by TaskCard (removed likes and comments)
   const convertTaskForCard = (task: TaskWithDetails) => ({
     id: task.id,
+    ticketId: task.ticketId,
     title: task.name,
     description: task.description,
     type: task.type,
@@ -360,6 +364,35 @@ const SprintBoard = () => {
               columns={columns}
               onUpdateColumns={setColumns}
             />
+
+            <div className="flex space-x-4 overflow-x-auto pb-4">
+              {columns.sort((a, b) => a.order - b.order).map(column => (
+                <Card
+                  key={column.id}
+                  className={`flex-shrink-0 w-80 ${column.color} ${dragOverColumn === column.id ? 'ring-2 ring-blue-500' : ''}`}
+                  onDragOver={handleDragOver}
+                  onDragEnter={(e) => handleDragEnter(e, column.id)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, column.id)}
+                >
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-center text-sm">
+                      {column.title}
+                      <Badge variant="secondary">{getTasksByColumn(column.id).length}</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-3 p-3">
+                    {getTasksByColumn(column.id).map(task => (
+                      <TaskCard
+                        key={task.id}
+                        task={convertTaskForCard(task)}
+                        onDragStart={(e) => handleDragStart(e, task)}
+                      />
+                    ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </>
         )}
       </div>

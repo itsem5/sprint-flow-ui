@@ -344,6 +344,114 @@
       "labels": ["search", "algorithm"],
       "attachments": ["attachment-4"],
       "subTasks": ["subtask-12", "subtask-13"]
+    },
+    {
+      "id": "task-9",
+      "storyId": "story-4",
+      "name": "Implement product filtering",
+      "description": "Add filters for price, category, and brand to product search results",
+      "type": "task",
+      "status": "in-progress",
+      "priority": "medium",
+      "storyPoints": 5,
+      "assigneeId": "user-3",
+      "reporterId": "user-1",
+      "likes": 1,
+      "comments": 0,
+      "createdAt": "2024-02-01T09:00:00Z",
+      "labels": ["frontend", "search"],
+      "attachments": [],
+      "subTasks": []
+    },
+    {
+      "id": "task-10",
+      "storyId": "story-4",
+      "name": "Optimize search performance",
+      "description": "Improve search query response times for large datasets",
+      "type": "task",
+      "status": "review",
+      "priority": "high",
+      "storyPoints": 8,
+      "assigneeId": "user-5",
+      "reporterId": "user-4",
+      "likes": 3,
+      "comments": 1,
+      "createdAt": "2024-02-05T14:00:00Z",
+      "labels": ["backend", "performance"],
+      "attachments": [],
+      "subTasks": []
+    },
+    {
+      "id": "task-11",
+      "storyId": "story-5",
+      "name": "Design product details page layout",
+      "description": "Create UI/UX for displaying product information, images, and reviews",
+      "type": "task",
+      "status": "done",
+      "priority": "low",
+      "storyPoints": 3,
+      "assigneeId": "user-2",
+      "reporterId": "user-3",
+      "likes": 6,
+      "comments": 2,
+      "createdAt": "2024-02-08T11:00:00Z",
+      "labels": ["design", "ui"],
+      "attachments": [],
+      "subTasks": []
+    },
+    {
+      "id": "task-12",
+      "storyId": "story-5",
+      "name": "Implement image gallery for products",
+      "description": "Develop a responsive image gallery with zoom functionality",
+      "type": "task",
+      "status": "in-progress",
+      "priority": "medium",
+      "storyPoints": 5,
+      "assigneeId": "user-4",
+      "reporterId": "user-2",
+      "likes": 2,
+      "comments": 0,
+      "createdAt": "2024-02-10T10:00:00Z",
+      "labels": ["frontend", "media"],
+      "attachments": [],
+      "subTasks": []
+    },
+    {
+      "id": "task-13",
+      "storyId": "story-6",
+      "name": "Shopping cart backend logic",
+      "description": "Develop API for adding, removing, and updating items in the cart",
+      "type": "task",
+      "status": "todo",
+      "priority": "high",
+      "storyPoints": 7,
+      "assigneeId": "user-1",
+      "reporterId": "user-5",
+      "likes": 4,
+      "comments": 1,
+      "createdAt": "2024-02-12T15:00:00Z",
+      "labels": ["backend", "e-commerce"],
+      "attachments": [],
+      "subTasks": []
+    },
+    {
+      "id": "task-14",
+      "storyId": "story-6",
+      "name": "Shopping cart UI integration",
+      "description": "Integrate backend cart API with frontend UI components",
+      "type": "task",
+      "status": "todo",
+      "priority": "medium",
+      "storyPoints": 6,
+      "assigneeId": "user-3",
+      "reporterId": "user-1",
+      "likes": 1,
+      "comments": 0,
+      "createdAt": "2024-02-15T09:30:00Z",
+      "labels": ["frontend", "api-integration"],
+      "attachments": [],
+      "subTasks": []
     }
   ],
   "subTasks": [
@@ -424,6 +532,78 @@
       "taskId": "task-8",
       "name": "Implement autocomplete",
       "description": "Add search suggestions as user types"
+    },
+    {
+      "id": "subtask-14",
+      "taskId": "task-9",
+      "name": "Design filter UI",
+      "description": "Create UI components for product filters"
+    },
+    {
+      "id": "subtask-15",
+      "taskId": "task-9",
+      "name": "Integrate filter API",
+      "description": "Connect frontend filters with backend API"
+    },
+    {
+      "id": "subtask-16",
+      "taskId": "task-10",
+      "name": "Benchmark current search performance",
+      "description": "Measure existing search query response times"
+    },
+    {
+      "id": "subtask-17",
+      "taskId": "task-10",
+      "name": "Identify performance bottlenecks",
+      "description": "Analyze search logs and database queries"
+    },
+    {
+      "id": "subtask-18",
+      "taskId": "task-11",
+      "name": "Gather product display requirements",
+      "description": "Collect information on what data points to show for each product"
+    },
+    {
+      "id": "subtask-19",
+      "taskId": "task-11",
+      "name": "Create responsive design for product page",
+      "description": "Ensure product page looks good on all devices"
+    },
+    {
+      "id": "subtask-20",
+      "taskId": "task-12",
+      "name": "Research image gallery libraries",
+      "description": "Evaluate existing libraries for image display"
+    },
+    {
+      "id": "subtask-21",
+      "taskId": "task-12",
+      "name": "Implement image lazy loading",
+      "description": "Optimize image loading for faster page performance"
+    },
+    {
+      "id": "subtask-22",
+      "taskId": "task-13",
+      "name": "Design database schema for shopping cart",
+      "description": "Define tables and relationships for cart items"
+    },
+    {
+      "id": "subtask-23",
+      "taskId": "task-13",
+      "name": "Implement cart item CRUD operations",
+      "description": "Create API endpoints for adding, updating, deleting cart items"
+    },
+    {
+      "id": "subtask-24",
+      "taskId": "task-14",
+      "name": "Develop cart summary component",
+      "description": "Create UI component to display cart total and items"
+    },
+    {
+      "id": "subtask-25",
+      "taskId": "task-14",
+      "name": "Implement quantity selector for cart items",
+      "description": "Allow users to change item quantities in cart"
     }
   ],
   "attachments": [
@@ -458,6 +638,54 @@
       "size": 87552,
       "uploadedAt": "2024-01-28T11:00:00Z",
       "uploadedBy": "user-2"
+    },
+    {
+      "id": "attachment-5",
+      "name": "filter_mockup.png",
+      "type": "image/png",
+      "size": 150000,
+      "uploadedAt": "2024-02-01T10:00:00Z",
+      "uploadedBy": "user-3"
+    },
+    {
+      "id": "attachment-6",
+      "name": "performance_report.pdf",
+      "type": "application/pdf",
+      "size": 300000,
+      "uploadedAt": "2024-02-05T15:00:00Z",
+      "uploadedBy": "user-5"
+    },
+    {
+      "id": "attachment-7",
+      "name": "product_page_spec.docx",
+      "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 120000,
+      "uploadedAt": "2024-02-08T12:00:00Z",
+      "uploadedBy": "user-2"
+    },
+    {
+      "id": "attachment-8",
+      "name": "image_gallery_design.png",
+      "type": "image/png",
+      "size": 200000,
+      "uploadedAt": "2024-02-10T11:00:00Z",
+      "uploadedBy": "user-4"
+    },
+    {
+      "id": "attachment-9",
+      "name": "cart_api_spec.pdf",
+      "type": "application/pdf",
+      "size": 280000,
+      "uploadedAt": "2024-02-12T16:00:00Z",
+      "uploadedBy": "user-1"
+    },
+    {
+      "id": "attachment-10",
+      "name": "checkout_flow.jpg",
+      "type": "image/jpeg",
+      "size": 180000,
+      "uploadedAt": "2024-02-15T10:00:00Z",
+      "uploadedBy": "user-3"
     }
   ]
 }

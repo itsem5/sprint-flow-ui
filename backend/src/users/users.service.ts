@@ -36,4 +36,12 @@ export class UsersService {
   async remove(id: number): Promise<void> {
     await this.usersRepository.delete(id);
   }
+
+  async searchUsers(query: string): Promise<User[]> {
+    return this.usersRepository.createQueryBuilder('user')
+      .where('LOWER(user.firstName) LIKE LOWER(:query)', { query: `%${query}%` })
+      .orWhere('LOWER(user.lastName) LIKE LOWER(:query)', { query: `%${query}%` })
+      .orWhere('LOWER(user.email) LIKE LOWER(:query)', { query: `%${query}%` })
+      .getMany();
+  }
 }

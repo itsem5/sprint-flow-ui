@@ -17,16 +17,24 @@ export class EpicsService {
   }
 
   findAll(): Promise<Epic[]> {
-    return this.epicsRepository.find();
+    return this.epicsRepository.find({
+      relations: ['project', 'creator', 'assignee'],
+    });
   }
 
   findOne(id: string): Promise<Epic | null> {
-    return this.epicsRepository.findOneBy({ id });
+    return this.epicsRepository.findOne({
+      where: { id },
+      relations: ['project', 'creator', 'assignee'],
+    });
   }
 
   async update(id: string, updateEpicDto: UpdateEpicDto): Promise<Epic | null> {
     await this.epicsRepository.update(id, updateEpicDto);
-    return this.epicsRepository.findOneBy({ id });
+    return this.epicsRepository.findOne({
+      where: { id },
+      relations: ['project', 'creator', 'assignee'],
+    });
   }
 
   async remove(id: string): Promise<void> {

@@ -14,50 +14,70 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { UserProfile } from "./UserProfile";
+import { useProject } from "@/contexts/ProjectContext";
 
 const menuItems = [
   {
     title: "Projects",
-    url: "/projects",
+    basePath: "/projects",
     icon: Home,
   },
   {
     title: "Dashboard",
-    url: "/dashboard",
+    basePath: "/dashboard",
     icon: BarChart3,
   },
   {
     title: "Sprint Board",
-    url: "/sprint",
+    basePath: "/sprint",
     icon: FolderKanban,
   },
   {
     title: "Backlog",
-    url: "/backlog",
+    basePath: "/backlog",
     icon: List,
   },
   {
     title: "Roadmap",
-    url: "/roadmap",
+    basePath: "/roadmap",
     icon: Map,
+  },
+  {
+    title: "Epics",
+    basePath: "/epics",
+    icon: List,
   },
 ];
 
 const projectItems = [
   {
     title: "Team",
-    url: "/team",
+    basePath: "/team",
     icon: Users,
   },
   {
     title: "Settings",
-    url: "/settings",
+    basePath: "/settings",
     icon: Settings,
   },
 ];
 
 export function AppSidebar() {
   const location = useLocation();
+  const { selectedProject } = useProject();
+
+  const getLinkPath = (basePath: string) => {
+    if (basePath === "/projects" || basePath === "/epics") return basePath;
+    if (selectedProject) {
+      return `/project/${selectedProject.id}${basePath}`;
+    }
+    return basePath; // Fallback if no project selected
+  };
+
+  const isLinkActive = (basePath: string) => {
+    const fullPath = getLinkPath(basePath);
+    return location.pathname.startsWith(fullPath);
+  };
 
   return (
     <Sidebar className="border-r border-border/40">
@@ -79,8 +99,8 @@ export function AppSidebar() {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.url}>
-                    <Link to={item.url} className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors">
+                  <SidebarMenuButton asChild isActive={isLinkActive(item.basePath)}>
+                    <Link to={getLinkPath(item.basePath)} className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors">
                       <item.icon className="w-4 h-4" />
                       <span>{item.title}</span>
                     </Link>
@@ -97,8 +117,8 @@ export function AppSidebar() {
             <SidebarMenu>
               {projectItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.url}>
-                    <Link to={item.url} className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors">
+                  <SidebarMenuButton asChild isActive={isLinkActive(item.basePath)}>
+                    <Link to={getLinkPath(item.basePath)} className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors">
                       <item.icon className="w-4 h-4" />
                       <span>{item.title}</span>
                     </Link>

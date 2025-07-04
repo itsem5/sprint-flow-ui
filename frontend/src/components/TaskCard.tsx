@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 interface TaskCardProps {
   task: {
     id: string;
+    ticketId: string;
     title: string;
     description: string;
     type: 'epic' | 'story' | 'task' | 'sub-task' | 'bug' | 'issue';
@@ -31,6 +32,7 @@ interface TaskCardProps {
   };
   onClick?: () => void;
   isDragging?: boolean;
+  onDragStart?: (e: React.DragEvent) => void;
 }
 
 const typeColors = {
@@ -49,9 +51,11 @@ const priorityColors = {
   urgent: 'bg-red-500',
 };
 
-export function TaskCard({ task, onClick, isDragging }: TaskCardProps) {
+export function TaskCard({ task, onClick, isDragging, onDragStart }: TaskCardProps) {
   return (
     <Card 
+      draggable
+      onDragStart={onDragStart}
       className={cn(
         "cursor-pointer hover:shadow-md transition-all duration-200 group",
         isDragging && "opacity-50 transform rotate-2"
@@ -63,7 +67,7 @@ export function TaskCard({ task, onClick, isDragging }: TaskCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="secondary" className={cn("text-xs", typeColors[task.type])}>
-                {task.id} {/* This should be ticketId in real implementation */}
+                {task.ticketId}
               </Badge>
               <div className={cn("w-2 h-2 rounded-full", priorityColors[task.priority])} />
             </div>

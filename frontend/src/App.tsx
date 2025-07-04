@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import SprintBoard from "./pages/SprintBoard";
 import Backlog from "./pages/Backlog";
 import Roadmap from "./pages/Roadmap";
+import Epics from "./pages/Epics";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import CreateOrganization from "./pages/CreateOrganization";
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="/project/:projectId/sprint" element={<SprintBoard />} />
                 <Route path="/project/:projectId/backlog" element={<Backlog />} />
                 <Route path="/project/:projectId/roadmap" element={<Roadmap />} />
+                <Route path="/epics" element={<Epics />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/sprint" element={<SprintBoard />} />
                 <Route path="/backlog" element={<Backlog />} />

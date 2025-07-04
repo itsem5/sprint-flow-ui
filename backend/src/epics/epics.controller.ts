@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
 import { EpicsService } from './epics.service';
 import { CreateEpicDto, UpdateEpicDto } from './dto/epic.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Controller('epics')
 export class EpicsController {
@@ -8,7 +9,10 @@ export class EpicsController {
 
   @Post()
   create(@Body() createEpicDto: CreateEpicDto) {
-    return this.epicsService.create(createEpicDto);
+    // For now, we'll use a dummy user ID for createdBy
+    const createdBy = 'user-1'; // Replace with actual user ID from authentication context
+    const id = uuidv4();
+    return this.epicsService.create({ ...createEpicDto, createdBy });
   }
 
   @Get()

@@ -26,6 +26,11 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
+  @Get('search/:query')
+  searchUsers(@Param('query') query: string) {
+    return this.usersService.searchUsers(query);
+  }
+
   @Put(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
