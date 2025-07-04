@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,11 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { searchUsers, User } from '@/api/users/user';
+import SearchUsers from './SearchUsers';
+import { User } from '@/api/users/user';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CreateEpicModalProps {
   isOpen: boolean;
@@ -20,55 +18,27 @@ interface CreateEpicModalProps {
     description: string;
     status: string;
     priority: string;
-    assignedTo?: string;
+    assigneeId?: string;
     tags?: string[];
     startDate?: string;
     dueDate?: string;
+    createdBy?: number; 
   }) => void;
   projectId?: string;
 }
 
 export const CreateEpicModal: React.FC<CreateEpicModalProps> = ({ isOpen, onClose, onCreateEpic, projectId }) => {
+  const { user } = useAuth();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('Not Started');
   const [priority, setPriority] = useState('Medium');
-  const [assignedTo, setAssignedTo] = useState<string | undefined>(undefined);
+  const [assignee, setAssignee] = useState<User | null>(null);
   const [tags, setTags] = useState('');
   const [startDate, setStartDate] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [popoverOpen, setPopoverOpen] = useState(false);
 
   const { toast } = useToast();
-
-  // Debounce search query
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (searchQuery) {
-        setIsSearching(true);
-        searchUsers(searchQuery)
-          .then(data => {
-            setSearchResults(data);
-          })
-          .catch(error => {
-            console.error('Failed to search users:', error);
-            setSearchResults([]);
-          })
-          .finally(() => {
-            setIsSearching(false);
-          });
-      } else {
-        setSearchResults([]);
-      }
-    }, 500);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchQuery]);
 
   const handleSubmit = () => {
     if (!name.trim() || !description.trim()) {
@@ -79,22 +49,25 @@ export const CreateEpicModal: React.FC<CreateEpicModalProps> = ({ isOpen, onClos
       });
       return;
     }
+    console.log("Creating epic with data:", user);
+    
 
     onCreateEpic({
       name,
       description,
       status,
       priority,
-      assignedTo,
+      assigneeId: assignee?.id,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : undefined,
       startDate: startDate || undefined,
       dueDate: dueDate || undefined,
+      createdBy: user?.id, // Pass the logged-in user's ID
     });
     setName('');
     setDescription('');
     setStatus('Not Started');
     setPriority('Medium');
-    setAssignedTo(undefined);
+    setAssignee(null);
     setTags('');
     setStartDate('');
     setDueDate('');
@@ -165,55 +138,22 @@ export const CreateEpicModal: React.FC<CreateEpicModalProps> = ({ isOpen, onClos
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="assignedTo" className="text-right">
-              Assigned To
+            <Label htmlFor="assignee" className="text-right">
+              Assignee
             </Label>
             <div className="col-span-3">
-              <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={popoverOpen}
-                    className="w-full justify-between"
-                  >
-                    {assignedTo
-                      ? searchResults.find((user) => user.id === assignedTo)?.firstName + " " + searchResults.find((user) => user.id === assignedTo)?.lastName
-                      : "Select user..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                  <Command>
-                    <CommandInput
-                      placeholder="Search user..."
-                      value={searchQuery}
-                      onValueChange={setSearchQuery}
-                    />
-                    <CommandEmpty>{isSearching ? "Searching..." : "No user found."}</CommandEmpty>
-                    <CommandGroup>
-                      {searchResults.map((user) => (
-                        <CommandItem
-                          key={user.id}
-                          value={user.firstName + " " + user.lastName}
-                          onSelect={() => {
-                            setAssignedTo(user.id);
-                            setPopoverOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              assignedTo === user.id ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {user.firstName} {user.lastName}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              {assignee ? (
+                <div className="flex items-center gap-2">
+                  <span>{assignee.firstName} {assignee.lastName}</span>
+                  <Button variant="ghost" size="sm" onClick={() => setAssignee(null)}>X</Button>
+                </div>
+              ) : (
+                user && !user.organization ? (
+                  <span>Please select an organization to assign users.</span>
+                ) : (
+                  <SearchUsers onSelectUser={setAssignee} />
+                )
+              )}
             </div>
           </div>
 

@@ -6,7 +6,7 @@ interface CreateEpicPayload {
   description?: string;
   status?: string;
   priority?: string;
-  createdBy: string;
+  createdBy: number;
   assignedTo?: string;
   tags?: string[];
   startDate?: string;

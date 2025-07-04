@@ -17,20 +17,20 @@ export class UsersService {
   }
 
   findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+    return this.usersRepository.find({ relations: ['organization'] });
   }
 
   findOne(id: number): Promise<User | null> {
-    return this.usersRepository.findOneBy({ id });
+    return this.usersRepository.findOne({ where: { id }, relations: ['organization'] });
   }
 
   findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOneBy({ email });
+    return this.usersRepository.findOne({ where: { email }, relations: ['organization'] });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User | null> {
     await this.usersRepository.update(id, updateUserDto);
-    return this.usersRepository.findOneBy({ id });
+    return this.findOne(id);
   }
 
   async remove(id: number): Promise<void> {
@@ -39,6 +39,7 @@ export class UsersService {
 
   async searchUsers(query: string): Promise<User[]> {
     return this.usersRepository.createQueryBuilder('user')
+      .leftJoinAndSelect('user.organization', 'organization')
       .where('LOWER(user.firstName) LIKE LOWER(:query)', { query: `%${query}%` })
       .orWhere('LOWER(user.lastName) LIKE LOWER(:query)', { query: `%${query}%` })
       .orWhere('LOWER(user.email) LIKE LOWER(:query)', { query: `%${query}%` })
@@ -47,6 +48,7 @@ export class UsersService {
 
   async searchUsersInOrganization(organizationId: number, userName: string): Promise<User[]> {
     const queryBuilder = this.usersRepository.createQueryBuilder('user')
+      .leftJoinAndSelect('user.organization', 'organization')
       .where('user.organizationId = :organizationId', { organizationId });
 
     if (userName) {
