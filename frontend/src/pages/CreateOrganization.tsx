@@ -41,6 +41,7 @@ const CreateOrganization = () => {
     createOrganizationMutation.mutate(formData, {
       onSuccess: () => {
         toast.success("Organization created successfully!");
+        navigate("/dashboard");
       },
       onError: (error) => {
         toast.error(error.message || "An error occurred");

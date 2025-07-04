@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Organization } from './organization.entity';
@@ -13,9 +13,15 @@ export class OrganizationsService {
     @Inject(UsersService) private readonly usersService: UsersService,
   ) {}
 
-  create(createOrganizationDto: CreateOrganizationDto): Promise<Organization> {
+  async create(createOrganizationDto: CreateOrganizationDto): Promise<Organization> {
+    const existingOrganization = await this.organizationsRepository.findOne({ where: { name: createOrganizationDto.name } });
+    if (existingOrganization) {
+      throw new ConflictException('Organization with this name already exists');
+    }
     const organization = this.organizationsRepository.create(createOrganizationDto);
-    return this.organizationsRepository.save(organization);
+    const newOrganization = await this.organizationsRepository.save(organization);
+    await this.usersService.update(newOrganization.createdById, { organizationId: newOrganization.id });
+    return newOrganization;
   }
 
   findAll(): Promise<Organization[]> {
