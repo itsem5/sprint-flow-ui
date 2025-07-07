@@ -47,12 +47,11 @@ export class Epic {
   @Column({ name: 'created_by' })
   createdById: number;
 
-  @ManyToOne(() => User, user => user.createdEpics)
-  @JoinColumn({ name: 'created_by' })
-  createdBy: User;
-
   @Column({ name: 'assigned_to', nullable: true })
-  assignedTo: string;
+  assignedTo: number;
+
+  @Column({ name: 'assignee', nullable: true })
+  assignee: number;
 
   @Column({ type: 'simple-array', nullable: true })
   tags: string[];
@@ -81,8 +80,12 @@ export class Epic {
   creator: User;
 
   @ManyToOne(() => User, user => user.assignedEpics)
+  @JoinColumn({ name: 'assignee' })
+  assigneeUser: User;
+
+  @ManyToOne(() => User, user => user.assignedEpics)
   @JoinColumn({ name: 'assigned_to' })
-  assignee: User;
+  assignedToUser: User;
 
   @OneToMany(() => Story, story => story.epic)
   stories: Story[];

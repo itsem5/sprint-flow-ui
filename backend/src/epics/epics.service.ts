@@ -23,14 +23,14 @@ export class EpicsService {
 
   findAll(): Promise<Epic[]> {
     return this.epicsRepository.find({
-      relations: ['project', 'creator', 'assignee'],
+      relations: ['project', 'creator', 'assigneeUser', 'assignedToUser'],
     });
   }
 
   findOne(id: string): Promise<Epic | null> {
     return this.epicsRepository.findOne({
       where: { id },
-      relations: ['project', 'creator', 'assignee'],
+      relations: ['project', 'creator', 'assigneeUser', 'assignedToUser'],
     });
   }
 
@@ -38,7 +38,7 @@ export class EpicsService {
     await this.epicsRepository.update(id, updateEpicDto);
     return this.epicsRepository.findOne({
       where: { id },
-      relations: ['project', 'creator', 'assignee'],
+      relations: ['project', 'creator', 'assigneeUser', 'assignedToUser'],
     });
   }
 

@@ -20,12 +20,14 @@ export class CreateEpicDto {
   @IsEnum(EpicPriority)
   priority?: EpicPriority;
 
-  @IsNumber()
-  createdById: number;
 
   @IsOptional()
-  @IsString()
-  assignedTo?: string;
+  @IsNumber()
+  assignee?: number;
+
+  @IsOptional()
+  @IsNumber()
+  assignedTo?: number;
 
   @IsOptional()
   @IsArray()
@@ -39,6 +41,9 @@ export class CreateEpicDto {
   @IsOptional()
   @IsDateString()
   dueDate?: Date;
+
+  @IsNumber()
+  createdById: number;
 }
 
 export class UpdateEpicDto {
@@ -59,8 +64,12 @@ export class UpdateEpicDto {
   priority?: EpicPriority;
 
   @IsOptional()
-  @IsString()
-  assignedTo?: string;
+  @IsNumber()
+  assignee?: number;
+
+  @IsOptional()
+  @IsNumber()
+  assignedTo?: number;
 
   @IsOptional()
   @IsArray()

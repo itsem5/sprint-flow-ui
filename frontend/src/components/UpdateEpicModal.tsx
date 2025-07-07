@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,73 +8,52 @@ import { useToast } from '@/components/ui/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SearchUsers from './SearchUsers';
 import { User } from '@/api/users/user';
-import { useAuth } from '@/contexts/AuthContext';
+import { Epic } from '@/api/epics/epic';
 
-interface CreateEpicModalProps {
+interface UpdateEpicModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateEpic: (epicData: {
-    name: string;
-    description: string;
-    status: string;
-    priority: string;
-    assignee?: number;
-    assignedTo?: number;
-    tags?: string[];
-    startDate?: string;
-    dueDate?: string;
-    createdById?: number; 
-  }) => void;
-  projectId?: string;
+  onUpdateEpic: (epicData: Partial<Epic>) => void;
+  epic: Epic;
 }
 
-export const CreateEpicModal: React.FC<CreateEpicModalProps> = ({ isOpen, onClose, onCreateEpic, projectId }) => {
-  const { user } = useAuth();
-  const [name, setName] = useState('End-to-End User Onboarding Experience');
-  const [description, setDescription] = useState( "Design and implement a comprehensive onboarding flow that guides new users from account creation to initial setup and feature discovery. This includes welcome screens, tooltips for key features, personalized recommendations, in-app tutorials, and progress tracking. The goal is to reduce user drop-off rates, enhance engagement during the first session, and provide a seamless experience across both web and mobile platforms. It should support localization, accessibility, and dynamically adapt based on user behavior or account type.");
-  const [status, setStatus] = useState('Not Started');
-  const [priority, setPriority] = useState('Medium');
-  const [assignee, setAssignee] = useState<User| null>(null);
-  const [assignedTo, setAssignedTo] = useState<User | null>(null);
-  const [tags, setTags] = useState("onboarding, UX, web,mobile, accessibility , personalization");
-  const [startDate, setStartDate] = useState('');
-  const [dueDate, setDueDate] = useState('');
+export const UpdateEpicModal: React.FC<UpdateEpicModalProps> = ({ isOpen, onClose, onUpdateEpic, epic }) => {
+  const [name, setName] = useState(epic.name);
+  const [description, setDescription] = useState(epic.description);
+  const [status, setStatus] = useState(epic.status);
+  const [priority, setPriority] = useState(epic.priority);
+  const [assignee, setAssignee] = useState<User | null>(epic.assigneeUser);
+  const [assignedTo, setAssignedTo] = useState<User | null>(epic.assignedToUser);
+  const [tags, setTags] = useState(epic.tags.join(', '));
+  const [startDate, setStartDate] = useState(epic.startDate.split('T')[0]);
+  const [dueDate, setDueDate] = useState(epic.dueDate.split('T')[0]);
 
   const { toast } = useToast();
 
-  const handleSubmit = () => {
-    if (!name.trim() || !description.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please fill in all required fields (Name, Description).',
-        variant: 'destructive',
-      });
-      return;
-    }
-    console.log("Creating epic with data:", user);
-    
+  useEffect(() => {
+    setName(epic.name);
+    setDescription(epic.description);
+    setStatus(epic.status);
+    setPriority(epic.priority);
+    setAssignee(epic.assigneeUser);
+    setAssignedTo(epic.assignedToUser);
+    setTags(epic.tags.join(', '));
+    setStartDate(epic.startDate.split('T')[0]);
+    setDueDate(epic.dueDate.split('T')[0]);
+  }, [epic]);
 
-    onCreateEpic({
+  const handleSubmit = () => {
+    onUpdateEpic({
       name,
       description,
       status,
       priority,
       assignee: assignee?.id,
       assignedTo: assignedTo?.id,
-      tags: tags ? tags.split(',').map(tag => tag.trim()) : undefined,
-      startDate: startDate || undefined,
-      dueDate: dueDate || undefined,
-      createdById: user?.id,
+      tags: tags.split(',').map(tag => tag.trim()),
+      startDate,
+      dueDate,
     });
-    setName('');
-    setDescription('');
-    setStatus('Not Started');
-    setPriority('Medium');
-    setAssignee(null);
-    setAssignedTo(null);
-    setTags('');
-    setStartDate('');
-    setDueDate('');
     onClose();
   };
 
@@ -82,7 +61,7 @@ export const CreateEpicModal: React.FC<CreateEpicModalProps> = ({ isOpen, onClos
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Create New Epic</DialogTitle>
+          <DialogTitle>Update Epic</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -104,18 +83,6 @@ export const CreateEpicModal: React.FC<CreateEpicModalProps> = ({ isOpen, onClos
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="col-span-3"
-            />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="creator" className="text-right">
-              Creator
-            </Label>
-            <Input
-              id="creator"
-              value={user ? `${user.firstName} ${user.lastName}` : ''}
-              disabled
               className="col-span-3"
             />
           </div>
@@ -164,11 +131,7 @@ export const CreateEpicModal: React.FC<CreateEpicModalProps> = ({ isOpen, onClos
                   <Button variant="ghost" size="sm" onClick={() => setAssignee(null)}>X</Button>
                 </div>
               ) : (
-                user && !user.organization ? (
-                  <span>Please select an organization to assign users.</span>
-                ) : (
-                  <SearchUsers onSelectUser={setAssignee} />
-                )
+                <SearchUsers onSelectUser={setAssignee} />
               )}
             </div>
           </div>
@@ -184,11 +147,7 @@ export const CreateEpicModal: React.FC<CreateEpicModalProps> = ({ isOpen, onClos
                   <Button variant="ghost" size="sm" onClick={() => setAssignedTo(null)}>X</Button>
                 </div>
               ) : (
-                user && !user.organization ? (
-                  <span>Please select an organization to assign users.</span>
-                ) : (
-                  <SearchUsers onSelectUser={setAssignedTo} />
-                )
+                <SearchUsers onSelectUser={setAssignedTo} />
               )}
             </div>
           </div>
@@ -234,7 +193,7 @@ export const CreateEpicModal: React.FC<CreateEpicModalProps> = ({ isOpen, onClos
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit}>Create Epic</Button>
+          <Button onClick={handleSubmit}>Update Epic</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
