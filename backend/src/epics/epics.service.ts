@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { Epic } from './epic.entity';
 import { CreateEpicDto, UpdateEpicDto } from './dto/epic.dto';
 import { v4 as uuidv4 } from 'uuid';
@@ -27,9 +27,9 @@ export class EpicsService {
     });
   }
 
-  async findAllByProject(projectId: string): Promise<{ id: string; name: string; projectId: string }[]> {
+  async findAllByProject(projectId: string, search: string): Promise<{ id: string; name: string; projectId: string }[]> {
     const epics = await this.epicsRepository.find({
-      where: { projectId },
+      where: { projectId, name: Like(`%${search}%`) },
       select: ['id', 'name', 'projectId'],
       order: { createdAt: 'DESC' },
     });

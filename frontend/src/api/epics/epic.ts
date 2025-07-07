@@ -39,6 +39,11 @@ export const getAllEpics = async (projectId: string) => {
   return response.data;
 };
 
+export const getAllEpicsByProject = async (projectId: string, search: string) => {
+  const response = await api.get(`/epics/project/${projectId}?search=${search}`);
+  return response.data;
+};
+
 export const updateEpic = async (id: string, epicData: Partial<Epic>) => {
   const response = await api.patch(`/epics/${id}`, epicData);
   return response.data;

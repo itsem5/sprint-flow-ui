@@ -3,6 +3,7 @@ import { Organization } from '../organizations/organization.entity';
 import { Project } from '../projects/project.entity';
 import { Task } from '../tasks/task.entity';
 import { Epic } from '../epics/epic.entity';
+import { Story } from '../stories/story.entity';
 
 @Entity('users')
 export class User {
@@ -51,4 +52,10 @@ export class User {
 
   @OneToMany(() => Epic, epic => epic.assignee)
   assignedEpics: Epic[];
+
+  @OneToMany(() => Story, story => story.creator)
+  createdStories: Story[];
+
+  @OneToMany(() => Story, story => story.assignee)
+  assignedStories: Story[];
 }

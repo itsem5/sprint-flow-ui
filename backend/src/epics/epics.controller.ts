@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, Query } from '@nestjs/common';
 import { EpicsService } from './epics.service';
 import { CreateEpicDto, UpdateEpicDto } from './dto/epic.dto';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,8 +18,8 @@ export class EpicsController {
   }
 
   @Get('project/:projectId')
-  findAllByProject(@Param('projectId') projectId: string) {
-    return this.epicsService.findAllByProject(projectId);
+  findAllByProject(@Param('projectId') projectId: string, @Query('search') search: string) {
+    return this.epicsService.findAllByProject(projectId, search);
   }
 
   @Get(':id')

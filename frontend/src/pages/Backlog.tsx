@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { EpicCard } from "@/components/EpicCard"; // Assuming you will create this
+import { EpicCard } from "@/components/EpicCard";
+import { StoryCard } from "@/components/StoryCard";
 import { TaskCard } from "@/components/TaskCard";
 import { TaskModal } from "@/components/TaskModal";
 import { Plus, Search, Filter, ChevronDown, ChevronRight } from "lucide-react";
@@ -13,6 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useStaticData, TaskWithDetails } from "@/hooks/useStaticData";
 import { useQuery } from "@tanstack/react-query";
 import { getAllEpics, Epic } from "@/api/epics/epic";
+import { getAllStories, Story } from "@/api/stories/story";
 import { useProject } from "@/contexts/ProjectContext";
 
 const Backlog = () => {
@@ -26,6 +28,12 @@ const Backlog = () => {
   const { data: epicsData, isLoading: isLoadingEpics } = useQuery<Epic[]>({
     queryKey: ['epics', selectedProject?.id],
     queryFn: () => getAllEpics(selectedProject?.id || ''),
+    enabled: !!selectedProject,
+  });
+
+  const { data: storiesData, isLoading: isLoadingStories } = useQuery<Story[]>({
+    queryKey: ['stories', selectedProject?.id],
+    queryFn: () => getAllStories(selectedProject?.id || ''),
     enabled: !!selectedProject,
   });
 
@@ -56,7 +64,6 @@ const Backlog = () => {
     task.assignee.name.toLowerCase().includes(searchQuery.toLowerCase())
   ), [tasks, searchQuery]);
 
-  const stories = useMemo(() => filteredTasks.filter(task => task.type === 'story'), [filteredTasks]);
   const taskItems = useMemo(() => filteredTasks.filter(task => task.type === 'task'), [filteredTasks]);
 
   const getTotalStoryPoints = (taskList: TaskWithDetails[]) => {
@@ -184,27 +191,24 @@ const Backlog = () => {
                       )}
                       <span>Stories</span>
                       <Badge variant="secondary" className="bg-green-100 text-green-800">
-                        {stories.length}
+                        {storiesData?.length || 0}
                       </Badge>
                     </div>
-                    <Badge variant="outline">
-                      {getTotalStoryPoints(stories)} points
-                    </Badge>
                   </CardTitle>
                 </CardHeader>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <CardContent className="pt-0">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {stories.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={convertTaskForCard(task)}
-                        onClick={() => handleTaskClick(task)}
-                      />
-                    ))}
+                    {isLoadingStories ? (
+                      <p>Loading stories...</p>
+                    ) : (
+                      storiesData?.map((story) => (
+                        <StoryCard key={story.id} story={story} />
+                      ))
+                    )}
                   </div>
-                  {stories.length === 0 && (
+                  {!isLoadingStories && storiesData?.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
                       <p>No stories found</p>
                     </div>
