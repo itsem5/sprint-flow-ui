@@ -1,15 +1,19 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { EpicCard } from "@/components/EpicCard"; // Assuming you will create this
 import { TaskCard } from "@/components/TaskCard";
 import { TaskModal } from "@/components/TaskModal";
 import { Plus, Search, Filter, ChevronDown, ChevronRight } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useStaticData, TaskWithDetails } from "@/hooks/useStaticData";
+import { useQuery } from "@tanstack/react-query";
+import { getAllEpics, Epic } from "@/api/epics/epic";
+import { useProject } from "@/contexts/ProjectContext";
 
 const Backlog = () => {
   const [selectedTask, setSelectedTask] = useState<TaskWithDetails | null>(null);
@@ -17,6 +21,13 @@ const Backlog = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['epics', 'stories', 'tasks']));
   const data = useStaticData();
+  const { selectedProject } = useProject();
+
+  const { data: epicsData, isLoading: isLoadingEpics } = useQuery<Epic[]>({
+    queryKey: ['epics', selectedProject?.id],
+    queryFn: () => getAllEpics(selectedProject?.id || ''),
+    enabled: !!selectedProject,
+  });
 
   const tasks = data?.tasks || [];
 
@@ -39,15 +50,14 @@ const Backlog = () => {
     setExpandedSections(newExpanded);
   };
 
-  const filteredTasks = tasks.filter(task =>
+  const filteredTasks = useMemo(() => tasks.filter(task =>
     task.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     task.assignee.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ), [tasks, searchQuery]);
 
-  const epics = filteredTasks.filter(task => task.type === 'epic');
-  const stories = filteredTasks.filter(task => task.type === 'story');
-  const taskItems = filteredTasks.filter(task => task.type === 'task');
+  const stories = useMemo(() => filteredTasks.filter(task => task.type === 'story'), [filteredTasks]);
+  const taskItems = useMemo(() => filteredTasks.filter(task => task.type === 'task'), [filteredTasks]);
 
   const getTotalStoryPoints = (taskList: TaskWithDetails[]) => {
     return taskList.reduce((total, task) => total + task.storyPoints, 0);
@@ -87,7 +97,7 @@ const Backlog = () => {
             <div>
               <h1 className="text-2xl font-bold">Product Backlog</h1>
               <p className="text-muted-foreground">
-                {filteredTasks.length} items • {getTotalStoryPoints(filteredTasks)} story points
+                {filteredTasks.length} items
               </p>
             </div>
           </div>
@@ -130,27 +140,24 @@ const Backlog = () => {
                       )}
                       <span>Epics</span>
                       <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                        {epics.length}
+                        {epicsData?.length || 0}
                       </Badge>
                     </div>
-                    <Badge variant="outline">
-                      {getTotalStoryPoints(epics)} points
-                    </Badge>
                   </CardTitle>
                 </CardHeader>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <CardContent className="pt-0">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {epics.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={convertTaskForCard(task)}
-                        onClick={() => handleTaskClick(task)}
-                      />
-                    ))}
+                    {isLoadingEpics ? (
+                      <p>Loading epics...</p>
+                    ) : (
+                      epicsData?.map((epic) => (
+                        <EpicCard key={epic.id} epic={epic} />
+                      ))
+                    )}
                   </div>
-                  {epics.length === 0 && (
+                  {!isLoadingEpics && epicsData?.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
                       <p>No epics found</p>
                     </div>

@@ -27,6 +27,15 @@ export class EpicsService {
     });
   }
 
+  async findAllByProject(projectId: string): Promise<{ id: string; name: string; projectId: string }[]> {
+    const epics = await this.epicsRepository.find({
+      where: { projectId },
+      select: ['id', 'name', 'projectId'],
+      order: { createdAt: 'DESC' },
+    });
+    return epics;
+  }
+
   findOne(id: string): Promise<Epic | null> {
     return this.epicsRepository.findOne({
       where: { id },

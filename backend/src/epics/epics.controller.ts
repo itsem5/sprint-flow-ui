@@ -17,6 +17,11 @@ export class EpicsController {
     return this.epicsService.findAll();
   }
 
+  @Get('project/:projectId')
+  findAllByProject(@Param('projectId') projectId: string) {
+    return this.epicsService.findAllByProject(projectId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.epicsService.findOne(id);
